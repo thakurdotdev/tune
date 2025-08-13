@@ -1,6 +1,7 @@
 import { Song } from "./song";
 
 export interface Album {
+  album_id?: string;
   id: string;
   name: string;
   subtitle?: string;

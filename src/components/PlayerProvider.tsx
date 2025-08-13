@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useMemo } from "react";
 import { useAudioStore } from "../stores/audioStore";
 import { useMediaSessionStore } from "../stores/mediaSessionStore";
 import { usePlaybackStore } from "../stores/playbackStore";
-import { usePlaylistStore } from "../stores/playlistStore";
 import { useSleepTimerStore } from "../stores/sleepTimerStore";
 import type { PlayerConfig } from "../types/music";
 
@@ -20,133 +19,143 @@ const defaultConfig: PlayerConfig = {
   crossfade: 1000,
 };
 
-export const PlayerProvider: React.FC<PlayerProviderProps> = ({
-  children,
-  config: userConfig,
-  user,
-  loading = false,
-}) => {
-  const config = { ...defaultConfig, ...userConfig };
-  const initializeAudioManager = useAudioStore(
-    (state) => state.initializeAudioManager,
-  );
-  const destroyAudioManager = useAudioStore(
-    (state) => state.destroyAudioManager,
-  );
-  const audioManager = useAudioStore((state) => state.audioManager);
+export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
+  ({ children, config: userConfig, user, loading = false }) => {
+    // Memoize config to prevent unnecessary re-renders
+    const config = useMemo(
+      () => ({ ...defaultConfig, ...userConfig }),
+      [userConfig],
+    );
 
-  const { updateTime, setDuration, setPlaying, setLoading, setBuffering } =
-    useAudioStore();
+    // Use individual selectors for better performance
+    const initializeAudioManager = useAudioStore(
+      (state) => state.initializeAudioManager,
+    );
+    const destroyAudioManager = useAudioStore(
+      (state) => state.destroyAudioManager,
+    );
+    const audioManager = useAudioStore((state) => state.audioManager);
+    const updateTime = useAudioStore((state) => state.updateTime);
+    const setDuration = useAudioStore((state) => state.setDuration);
+    const setPlaying = useAudioStore((state) => state.setPlaying);
+    const setLoading = useAudioStore((state) => state.setLoading);
+    const setBuffering = useAudioStore((state) => state.setBuffering);
 
-  const {
-    currentSong,
-    getNextSong,
-    getPreviousSong,
-    setCurrentSong,
-    addToHistory,
-  } = usePlaybackStore();
+    const currentSong = usePlaybackStore((state) => state.currentSong);
+    const getNextSong = usePlaybackStore((state) => state.getNextSong);
+    const getPreviousSong = usePlaybackStore((state) => state.getPreviousSong);
+    const setCurrentSong = usePlaybackStore((state) => state.setCurrentSong);
+    const addToHistory = usePlaybackStore((state) => state.addToHistory);
 
-  const { shouldStopPlayback, updateSongs, clearSleepTimer } =
-    useSleepTimerStore();
+    const shouldStopPlayback = useSleepTimerStore(
+      (state) => state.shouldStopPlayback,
+    );
+    const updateSongs = useSleepTimerStore((state) => state.updateSongs);
+    const clearSleepTimer = useSleepTimerStore(
+      (state) => state.clearSleepTimer,
+    );
 
-  const {
-    initializeMediaSession,
-    updateMetadata,
-    updatePlaybackState,
-    updatePosition,
-    cleanup: cleanupMediaSession,
-  } = useMediaSessionStore();
+    const {
+      initializeMediaSession,
+      updateMetadata,
+      updatePlaybackState,
+      updatePosition,
+      cleanup: cleanupMediaSession,
+    } = useMediaSessionStore();
 
-  const { fetchPlaylists } = usePlaylistStore();
+    // Refs for preventing infinite loops and maintaining stable references
+    const lastSongIdRef = useRef<string | null>(null);
+    const isInitializedRef = useRef(false);
+    const timeUpdateThrottleRef = useRef<number>(0);
 
-  // Refs for preventing infinite loops
-  const lastSongIdRef = useRef<string | null>(null);
-  const isInitializedRef = useRef(false);
+    // Optimized audio manager callbacks with better throttling and memoization
+    const handleTimeUpdate = useCallback(
+      (time: number) => {
+        // Throttle time updates to every 500ms for smoother performance
+        const now = Date.now();
+        if (now - timeUpdateThrottleRef.current > 500) {
+          updateTime(time);
+          if (currentSong) {
+            updatePosition(time, audioManager?.getDuration() || 0);
+          }
+          timeUpdateThrottleRef.current = now;
+        }
+      },
+      [updateTime, updatePosition, currentSong, audioManager],
+    );
 
-  // Audio manager callbacks
-  const handleTimeUpdate = useCallback(
-    (time: number) => {
-      updateTime(time);
-      if (currentSong) {
-        updatePosition(time, audioManager?.getDuration() || 0);
+    const handleDurationChange = useCallback(
+      (duration: number) => {
+        setDuration(duration);
+      },
+      [setDuration],
+    );
+
+    const handlePlay = useCallback(() => {
+      setPlaying(true);
+      updatePlaybackState("playing");
+    }, [setPlaying, updatePlaybackState]);
+
+    const handlePause = useCallback(() => {
+      setPlaying(false);
+      updatePlaybackState("paused");
+    }, [setPlaying, updatePlaybackState]);
+
+    const handleEnd = useCallback(() => {
+      // Update songs remaining for sleep timer
+      updateSongs();
+
+      // Check if we should stop due to sleep timer
+      if (shouldStopPlayback()) {
+        setPlaying(false);
+        updatePlaybackState("none");
+        clearSleepTimer();
+        return;
       }
-    },
-    [updateTime, updatePosition, currentSong, audioManager],
-  );
 
-  const handleDurationChange = useCallback(
-    (duration: number) => {
-      setDuration(duration);
-    },
-    [setDuration],
-  );
+      // Play next song
+      const nextSong = getNextSong();
+      if (nextSong) {
+        setCurrentSong(nextSong);
+      } else {
+        setPlaying(false);
+        updatePlaybackState("none");
+      }
+    }, [
+      updateSongs,
+      shouldStopPlayback,
+      setPlaying,
+      updatePlaybackState,
+      clearSleepTimer,
+      getNextSong,
+      setCurrentSong,
+    ]);
 
-  const handlePlay = useCallback(() => {
-    setPlaying(true);
-    updatePlaybackState("playing");
-  }, [setPlaying, updatePlaybackState]);
-
-  const handlePause = useCallback(() => {
-    setPlaying(false);
-    updatePlaybackState("paused");
-  }, [setPlaying, updatePlaybackState]);
-
-  const handleEnd = useCallback(() => {
-    // Update songs remaining for sleep timer
-    updateSongs();
-
-    // Check if we should stop due to sleep timer
-    if (shouldStopPlayback()) {
-      setPlaying(false);
-      updatePlaybackState("none");
-      clearSleepTimer();
-      return;
-    }
-
-    // Play next song
-    const nextSong = getNextSong();
-    if (nextSong) {
-      setCurrentSong(nextSong);
-    } else {
-      setPlaying(false);
-      updatePlaybackState("none");
-    }
-  }, [
-    updateSongs,
-    shouldStopPlayback,
-    setPlaying,
-    updatePlaybackState,
-    clearSleepTimer,
-    getNextSong,
-    setCurrentSong,
-  ]);
-
-  const handleLoad = useCallback(() => {
-    setLoading(false);
-    setBuffering(false);
-  }, [setLoading, setBuffering]);
-
-  const handleLoadError = useCallback(
-    (error: any) => {
-      console.error("Audio load error:", error);
+    const handleLoad = useCallback(() => {
       setLoading(false);
       setBuffering(false);
-      // Optionally show error to user or try next song
-    },
-    [setLoading, setBuffering],
-  );
+    }, [setLoading, setBuffering]);
 
-  const handleBuffering = useCallback(
-    (buffering: boolean) => {
-      setBuffering(buffering);
-    },
-    [setBuffering],
-  );
+    const handleLoadError = useCallback(
+      (error: any) => {
+        console.error("Audio load error:", error);
+        setLoading(false);
+        setBuffering(false);
+        // Optionally show error to user or try next song
+      },
+      [setLoading, setBuffering],
+    );
 
-  // Initialize audio manager
-  useEffect(() => {
-    if (!isInitializedRef.current) {
-      initializeAudioManager({
+    const handleBuffering = useCallback(
+      (buffering: boolean) => {
+        setBuffering(buffering);
+      },
+      [setBuffering],
+    );
+
+    // Memoize callbacks for audio manager to prevent re-initialization
+    const audioCallbacks = useMemo(
+      () => ({
         onTimeUpdate: handleTimeUpdate,
         onDurationChange: handleDurationChange,
         onPlay: handlePlay,
@@ -155,128 +164,150 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({
         onLoad: handleLoad,
         onLoadError: handleLoadError,
         onBuffering: handleBuffering,
-      });
+      }),
+      [
+        handleTimeUpdate,
+        handleDurationChange,
+        handlePlay,
+        handlePause,
+        handleEnd,
+        handleLoad,
+        handleLoadError,
+        handleBuffering,
+      ],
+    );
+
+    // Initialize audio manager - only once
+    useEffect(() => {
+      if (isInitializedRef.current) return;
+
+      console.log("Initializing AudioManager...");
+      initializeAudioManager(audioCallbacks);
       isInitializedRef.current = true;
-    }
+      console.log("AudioManager initialized");
+    }, [initializeAudioManager, audioCallbacks]);
 
-    return () => {
-      destroyAudioManager();
-      cleanupMediaSession();
-    };
-  }, [
-    initializeAudioManager,
-    destroyAudioManager,
-    cleanupMediaSession,
-    handleTimeUpdate,
-    handleDurationChange,
-    handlePlay,
-    handlePause,
-    handleEnd,
-    handleLoad,
-    handleLoadError,
-    handleBuffering,
-  ]);
-
-  // Initialize media session
-  useEffect(() => {
-    initializeMediaSession({
-      onPlay: () => audioManager?.play(),
-      onPause: () => audioManager?.pause(),
-      onPreviousTrack: () => {
-        const prevSong = getPreviousSong();
-        if (prevSong) {
-          setCurrentSong(prevSong);
-        }
-      },
-      onNextTrack: () => {
-        const nextSong = getNextSong();
-        if (nextSong) {
-          setCurrentSong(nextSong);
-        }
-      },
-      onSeekTo: (time: number) => {
-        if (time > 0) {
-          // Absolute seek
-          audioManager?.seek(time);
-        } else {
-          // Relative seek
-          const currentTime = audioManager?.getCurrentTime() || 0;
-          const newTime = Math.max(0, currentTime + time);
-          audioManager?.seek(newTime);
-        }
-      },
-    });
-  }, [
-    initializeMediaSession,
-    audioManager,
-    getPreviousSong,
-    getNextSong,
-    setCurrentSong,
-  ]);
-
-  // Handle song changes
-  useEffect(() => {
-    if (!audioManager || !currentSong) return;
-    if (currentSong.id === lastSongIdRef.current) return;
-
-    const loadAndPlaySong = async () => {
-      try {
-        setLoading(true);
-
-        await audioManager.loadSong(currentSong, config.audioQuality);
-        updateMetadata(currentSong);
-
-        // Preload next song if enabled
-        if (config.preloadNext) {
+    // Memoize media session callbacks
+    const mediaSessionCallbacks = useMemo(
+      () => ({
+        onPlay: () => audioManager?.play(),
+        onPause: () => audioManager?.pause(),
+        onPreviousTrack: () => {
+          const prevSong = getPreviousSong();
+          if (prevSong) {
+            setCurrentSong(prevSong);
+          }
+        },
+        onNextTrack: () => {
           const nextSong = getNextSong();
           if (nextSong) {
-            audioManager.preloadNext(nextSong, config.audioQuality);
+            setCurrentSong(nextSong);
+          }
+        },
+        onSeekTo: (time: number) => {
+          if (time > 0) {
+            // Absolute seek
+            audioManager?.seek(time);
+          } else {
+            // Relative seek
+            const currentTime = audioManager?.getCurrentTime() || 0;
+            const newTime = Math.max(0, currentTime + time);
+            audioManager?.seek(newTime);
+          }
+        },
+      }),
+      [audioManager, getPreviousSong, getNextSong, setCurrentSong],
+    );
+
+    // Initialize media session - only when audioManager is available
+    useEffect(() => {
+      if (!audioManager) {
+        console.log("MediaSession: Waiting for audioManager...");
+        return;
+      }
+
+      console.log("MediaSession: Initializing with audioManager available");
+      initializeMediaSession(mediaSessionCallbacks);
+    }, [initializeMediaSession, audioManager, mediaSessionCallbacks]);
+
+    // Handle song changes with optimized loading
+    useEffect(() => {
+      if (!audioManager || !currentSong) {
+        if (!audioManager) {
+          console.warn("AudioManager is not available - cannot play song");
+        }
+        return;
+      }
+
+      // Prevent unnecessary reloads of the same song
+      if (currentSong.id === lastSongIdRef.current) return;
+
+      const loadAndPlaySong = async () => {
+        try {
+          setLoading(true);
+
+          // Load song with configured quality
+          await audioManager.loadSong(currentSong, config.audioQuality);
+
+          // Update metadata for media session
+          updateMetadata(currentSong);
+
+          // Preload next song if enabled (non-blocking)
+          if (config.preloadNext) {
+            const nextSong = getNextSong();
+            if (nextSong) {
+              // Don't await this to avoid blocking playback
+              try {
+                audioManager.preloadNext(nextSong, config.audioQuality);
+              } catch (error) {
+                console.warn("Failed to preload next song:", error);
+              }
+            }
+          }
+
+          // Start playback
+          audioManager.play();
+
+          // Update refs and history
+          lastSongIdRef.current = currentSong.id;
+          addToHistory(currentSong);
+        } catch (error) {
+          console.error("Failed to load song:", error);
+          setLoading(false);
+
+          // Auto-skip to next song on error
+          const nextSong = getNextSong();
+          if (nextSong && nextSong.id !== currentSong.id) {
+            setCurrentSong(nextSong);
           }
         }
+      };
 
-        // Auto-play the loaded song
-        audioManager.play();
+      loadAndPlaySong();
+    }, [
+      audioManager,
+      currentSong,
+      config.audioQuality,
+      config.preloadNext,
+      setLoading,
+      updateMetadata,
+      getNextSong,
+      setCurrentSong,
+      addToHistory,
+    ]);
 
-        lastSongIdRef.current = currentSong.id;
-      } catch (error) {
-        console.error("Failed to load song:", error);
-        setLoading(false);
-        // Optionally try next song
-        const nextSong = getNextSong();
-        if (nextSong) {
-          setCurrentSong(nextSong);
-        }
-      }
-    };
+    // Consolidated cleanup on unmount
+    useEffect(() => {
+      return () => {
+        console.log("Cleaning up PlayerProvider...");
+        destroyAudioManager();
+        cleanupMediaSession();
+        isInitializedRef.current = false;
+      };
+    }, [destroyAudioManager, cleanupMediaSession]);
 
-    loadAndPlaySong();
-  }, [
-    audioManager,
-    currentSong,
-    config.audioQuality,
-    config.preloadNext,
-    setLoading,
-    updateMetadata,
-    getNextSong,
-    setCurrentSong,
-  ]);
-
-  // Fetch user playlists when user is available
-  useEffect(() => {
-    if (user && !loading) {
-      fetchPlaylists();
-    }
-  }, [user, loading, fetchPlaylists]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      destroyAudioManager();
-      cleanupMediaSession();
-    };
-  }, [destroyAudioManager, cleanupMediaSession]);
-
-  return <>{children}</>;
-};
+    return <>{children}</>;
+  },
+);
 
 export default PlayerProvider;

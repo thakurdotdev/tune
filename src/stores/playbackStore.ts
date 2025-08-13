@@ -1,6 +1,7 @@
+import type { PlaybackState } from "@/types/music";
+import type { Song } from "@/types/song";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import type { Song, PlaybackState } from "../types/music";
 
 interface PlaybackStore extends PlaybackState {
   // Actions
@@ -265,16 +266,6 @@ export const usePlaybackStore = create<PlaybackStore>()(
   })),
 );
 
-// Derived selectors
 export const useCurrentSong = () =>
   usePlaybackStore((state) => state.currentSong);
 export const useQueue = () => usePlaybackStore((state) => state.queue);
-export const usePlaybackControls = () =>
-  usePlaybackStore((state) => ({
-    shuffle: state.shuffle,
-    repeat: state.repeat,
-    setShuffle: state.setShuffle,
-    setRepeat: state.setRepeat,
-    hasNext: state.hasNext(),
-    hasPrevious: state.hasPrevious(),
-  }));

@@ -1,6 +1,7 @@
 // utils/audioManager.ts
 import { Howl, Howler } from "howler";
-import type { Song, AudioQuality } from "../types/music";
+import type { AudioQuality } from "../types/music";
+import type { Song } from "../types/song";
 
 export class AudioManager {
   private currentHowl: Howl | null = null;

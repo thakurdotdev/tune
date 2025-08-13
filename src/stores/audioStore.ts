@@ -1,7 +1,7 @@
+import type { AudioState } from "@/types/music";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { AudioManager } from "../utils/audioManager";
-import type { AudioState, AudioQuality } from "../types/music";
 
 interface AudioStore extends AudioState {
   // Actions
@@ -42,9 +42,9 @@ export const useAudioStore = create<AudioStore>()(
 
     // Actions
     updateTime: (time: number) => {
-      // Throttle time updates to prevent excessive re-renders
+      // Throttle time updates to update only once per second
       const currentTime = get().currentTime;
-      if (Math.abs(time - currentTime) > 0.1) {
+      if (Math.abs(time - currentTime) >= 1.0) {
         set({ currentTime: time });
       }
     },
@@ -85,24 +85,13 @@ export const useAudioStore = create<AudioStore>()(
   })),
 );
 
-// Derived selectors for better performance
-export const useAudioTime = () =>
-  useAudioStore((state) => ({
-    currentTime: state.currentTime,
-    duration: state.duration,
-    buffered: state.buffered,
-  }));
-
-export const useAudioControls = () =>
-  useAudioStore((state) => ({
-    volume: state.volume,
-    isPlaying: state.isPlaying,
-    setVolume: state.setVolume,
-    audioManager: state.audioManager,
-  }));
-
-export const useAudioLoadingState = () =>
-  useAudioStore((state) => ({
-    isLoading: state.isLoading,
-    isBuffering: state.isBuffering,
-  }));
+export const useCurrentTime = () => useAudioStore((state) => state.currentTime);
+export const useDuration = () => useAudioStore((state) => state.duration);
+export const useBuffered = () => useAudioStore((state) => state.buffered);
+export const useVolume = () => useAudioStore((state) => state.volume);
+export const useIsPlaying = () => useAudioStore((state) => state.isPlaying);
+export const useIsLoading = () => useAudioStore((state) => state.isLoading);
+export const useIsBuffering = () => useAudioStore((state) => state.isBuffering);
+export const useAudioManager = () =>
+  useAudioStore((state) => state.audioManager);
+export const useSetVolume = () => useAudioStore((state) => state.setVolume);

@@ -39,7 +39,7 @@ const ensureHttpsForArtists = (artists?: Artist[]): Artist[] => {
   if (!artists) return [];
   return artists.map((artist) => ({
     ...artist,
-    url: artist.url ? convertToHttps(artist.url) : undefined,
+    url: artist.url ? convertToHttps(artist.url) : "",
     image: artist.image
       ? ensureHttpsForImages(artist.image)
       : [{ quality: "", link: DEFAULT_IMAGE }],
@@ -55,7 +55,7 @@ const ensureHttpsForDownloadUrls = (
   if (!downloadUrls) return [];
   return downloadUrls.map((item) => ({
     ...item,
-    link: item.link ? convertToHttps(item.link) : undefined,
+    link: item.link ? convertToHttps(item.link) : "",
   }));
 };
 
