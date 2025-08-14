@@ -1,6 +1,7 @@
 import { useQueue } from "@/stores/playbackStore";
 import { memo } from "react";
 import { FullSongCard } from "../Cards";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const QueueTab = memo(() => {
   const queue = useQueue();
@@ -15,7 +16,7 @@ const QueueTab = memo(() => {
 
   return (
     <div className="w-full">
-      <div className="w-full max-w-3xl mx-auto p-4">
+      <div className="w-full max-w-3xl mx-auto space-y-1 max-md:px-2 md:pr-3">
         {queue.map((song, index) => (
           <FullSongCard key={song.id || index} song={song} />
         ))}

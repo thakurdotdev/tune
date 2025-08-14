@@ -23,6 +23,7 @@ import { useCurrentSong, usePlaybackStore } from "@/stores/playbackStore";
 import { toast } from "sonner";
 import NowPlayingTab from "./NowPlayingTab";
 import QueueTab from "./QueueTab";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const PlayerSheet = memo(
   ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
@@ -119,7 +120,7 @@ const PlayerSheet = memo(
       <Sheet open={isOpen} onOpenChange={handleClose}>
         <SheetContent
           side="bottom"
-          className="h-full w-full p-0 overflow-hidden bg-background/95 backdrop-blur-xl border-t border-white/10"
+          className="h-full w-full max-md:px-3 md:p-0 overflow-hidden bg-background/95 backdrop-blur-xl border-t border-white/10"
           forceMount
         >
           {/* Simplified background - remove complex gradients for better performance */}
@@ -130,13 +131,13 @@ const PlayerSheet = memo(
               className="h-full flex flex-col w-full"
             >
               {/* Header */}
-              <SheetHeader className="p-4 pb-0 border-b border-white/10 bg-background/50">
+              <SheetHeader className="p-0">
                 <div className="flex items-center justify-between">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={handleClose}
-                    className="h-8 w-8 shrink-0 hover:bg-white/10 transition-colors duration-150"
+                    className="h-8 w-8 shrink-0 "
                   >
                     <ChevronDown className="h-5 w-5" />
                   </Button>
@@ -183,19 +184,13 @@ const PlayerSheet = memo(
 
                 {/* Tabs Navigation */}
                 <div className="flex justify-center pb-4">
-                  <TabsList className="grid grid-cols-2 w-full bg-white/[0.08] backdrop-blur-sm border border-white/10">
-                    <TabsTrigger
-                      value="current"
-                      className="flex items-center justify-center space-x-2 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground transition-all duration-150"
-                    >
+                  <TabsList className="grid grid-cols-2 w-full">
+                    <TabsTrigger value="current">
                       <Music className="w-4 h-4" />
                       <span className="hidden sm:inline">Now Playing</span>
                       <span className="sm:hidden">Current</span>
                     </TabsTrigger>
-                    <TabsTrigger
-                      value="queue"
-                      className="flex items-center justify-center space-x-2 data-[state=active]:bg-primary/20 data-[state=active]:text-foreground transition-all duration-150"
-                    >
+                    <TabsTrigger value="queue">
                       <ListMusic className="w-4 h-4" />
                       <span>Queue</span>
                       <Badge
@@ -211,19 +206,15 @@ const PlayerSheet = memo(
 
               {/* Content */}
               <div className="flex-1 overflow-hidden">
-                <TabsContent
-                  value="current"
-                  className="mt-0 h-full overflow-y-auto p-0"
-                >
-                  <NowPlayingTab />
-                </TabsContent>
-
-                <TabsContent
-                  value="queue"
-                  className="mt-0 h-full overflow-y-auto p-0"
-                >
-                  <QueueTab />
-                </TabsContent>
+                <ScrollArea className="h-full w-full">
+                  <TabsContent value="current" className="mt-0 h-full">
+                    <NowPlayingTab />
+                  </TabsContent>
+                  <TabsContent value="queue" className="mt-0 h-full">
+                    <QueueTab />
+                  </TabsContent>
+                  <ScrollBar orientation="vertical" />
+                </ScrollArea>
               </div>
             </Tabs>
           </div>

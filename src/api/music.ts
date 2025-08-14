@@ -5,6 +5,8 @@ import {
   HomePageResponse,
   RecentMusicResponse,
   MusicHistoryParams,
+  PlaylistDetails,
+  AlbumDetails,
 } from "@/types/music";
 import { Song } from "@/types/song";
 import { ensureHttpsForSongUrls } from "@/utils/getHttpsUrls";
@@ -50,4 +52,18 @@ export const getRelatedSongs = async (songId: string): Promise<Song[]> => {
   } else {
     return [];
   }
+};
+
+export const getPlaylistDetails = async (
+  playlistId: string,
+): Promise<PlaylistDetails> => {
+  const response = await axios.get(`${SONG_URL}/playlist?id=${playlistId}`);
+  return response.data.data ?? {};
+};
+
+export const getAlbumDetails = async (
+  albumId: string,
+): Promise<AlbumDetails> => {
+  const response = await axios.get(`${SONG_URL}/album?id=${albumId}`);
+  return response.data.data ?? {};
 };

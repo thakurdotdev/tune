@@ -7,7 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -21,29 +20,25 @@ import {
 import { Album, Artist, Playlist } from "@/types/music";
 import { Song } from "@/types/song";
 import {
-  MoreVertical,
+  Disc3,
   Heart,
   ListMusic,
   Loader2,
-  Disc3,
+  MoreVertical,
   Play,
-  Pause,
-  Plus,
   User,
-  Music,
-  Waves,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { memo, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import "./music.css";
 
-export const AudioWave = memo(() => (
+export const AudioWave = memo(({ width = "2px" }: { width?: string }) => (
   <div className="flex items-center gap-[2px]">
     {[...Array(4)].map((_, i) => (
       <div
         key={i}
-        className="w-[2px] bg-primary rounded-full animate-pulse"
+        className={`w-[${width}] bg-background rounded-full animate-pulse`}
         style={{
           animationDelay: `${i * 0.15}s`,
           height: `${8 + Math.sin(i) * 4}px`,
@@ -54,87 +49,15 @@ export const AudioWave = memo(() => (
   </div>
 ));
 
-export const ArtistCard = memo(({ artist }: { artist: Artist }) => {
-  const router = useRouter();
-
-  if (!artist?.name || !artist?.image) return null;
-
-  const imageUrl = useMemo(
-    () => (Array.isArray(artist.image) ? artist.image[2].link : artist.image),
-    [artist.image],
-  );
-
-  const handleClick = useCallback(() => {
-    router.push(`/music/artist/${artist.id}`);
-  }, [artist.id, router]);
-
-  return (
-    <div
-      className="group relative w-32 h-40 cursor-pointer"
-      onClick={handleClick}
-    >
-      {/* Floating Card with Magnetic Effect */}
-      <div className="relative h-full transition-all duration-500 ease-out group-hover:scale-[1.02] group-hover:-translate-y-2">
-        {/* Background Glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
-
-        {/* Main Card */}
-        <div className="relative h-full bg-gradient-to-br from-card via-card to-muted/30 rounded-3xl border border-border/30 overflow-hidden backdrop-blur-sm">
-          {/* Floating Avatar */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-14 h-14">
-            <div className="relative w-full h-full">
-              <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-background shadow-lg">
-                <LazyImage
-                  src={imageUrl}
-                  alt={artist.name}
-                  height={56}
-                  width={56}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-              </div>
-              {/* Floating Dot */}
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background shadow-sm animate-pulse" />
-            </div>
-          </div>
-
-          {/* Content Area */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 pt-20">
-            <div className="text-center space-y-2">
-              <h3 className="text-sm font-semibold text-foreground line-clamp-2 transition-colors duration-300 group-hover:text-primary">
-                {artist.name}
-              </h3>
-
-              {/* Minimalist Badge */}
-              <div className="inline-flex items-center gap-1 px-2 py-1 bg-muted/50 rounded-full border border-border/30">
-                <User className="w-2.5 h-2.5 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground font-medium">
-                  Artist
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Subtle Pattern Overlay */}
-          <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_50%_50%,_theme(colors.primary)_1px,_transparent_1px)] bg-[length:20px_20px]" />
-        </div>
-      </div>
-    </div>
-  );
-});
-
-export const FullSongCard = memo(({ song }: { song: Song }) => {
-  const router = useRouter();
+export const SongCard = memo(({ song }: { song: Song }) => {
   const currentSong = useCurrentSong();
   const queue = useQueue();
   const isPlaying = useIsPlaying();
-
   const audioManager = useAudioManager();
   const setCurrentSong = usePlaybackStore((state) => state.setCurrentSong);
   const addToQueueAction = usePlaybackStore((state) => state.addToQueue);
   const addToHistory = useAddToHistory();
-
   const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (!song?.id || !song?.image?.[2]) return null;
 
@@ -176,6 +99,124 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
     }
   };
 
+  return (
+    <div className="group cursor-pointer w-44" key={song.id}>
+      {/* Main Card */}
+      <div
+        className={cn(
+          "relative rounded-lg overflow-hidden hover:bg-primary/5",
+          isCurrentSong && "bg-primary/5 border-primary/30",
+        )}
+      >
+        {/* Compact Album Art Section */}
+        <div className="relative">
+          <div className="relative aspect-square overflow-hidden">
+            <LazyImage
+              src={
+                Array.isArray(song.image)
+                  ? song.image?.[1].link || song.image?.[2].link
+                  : song.image
+              }
+              alt={name}
+              height={170}
+              width={176}
+              className="w-full h-full object-cover rounded-lg"
+            />
+
+            {/* Bottom-right Play Button Overlay */}
+            <div className="absolute bottom-2 right-2 transform translate-x-8 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 ease-out">
+              {loading ? (
+                <div className="w-10 h-10 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                </div>
+              ) : isCurrentSong && isPlaying ? (
+                <div className="w-10 h-10 bg-primary/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                  <AudioWave />
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={handlePlayClick}
+                  className="w-10 h-10 rounded-full bg-primary/90 hover:bg-primary hover:scale-110 transition-all duration-200 shadow-lg"
+                >
+                  <Play className="w-4 h-4 text-primary-foreground fill-primary-foreground ml-0.5" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Song Information */}
+        <div className="p-4">
+          <div className="space-y-1">
+            <h3
+              className={cn(
+                "text-base font-semibold line-clamp-1 transition-colors duration-300",
+                isCurrentSong
+                  ? "text-primary"
+                  : "text-foreground group-hover:text-primary",
+              )}
+            >
+              {name}
+            </h3>
+            <p className="text-sm text-muted-foreground line-clamp-1">
+              {artistName}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+export const FullSongCard = memo(({ song }: { song: Song }) => {
+  const router = useRouter();
+  const currentSong = useCurrentSong();
+  const queue = useQueue();
+  const isPlaying = useIsPlaying();
+
+  const audioManager = useAudioManager();
+  const setCurrentSong = usePlaybackStore((state) => state.setCurrentSong);
+  const addToQueueAction = usePlaybackStore((state) => state.addToQueue);
+  const addToHistory = useAddToHistory();
+
+  if (!song?.id || !song?.image?.[2]) return null;
+
+  const isCurrentSong = currentSong?.id === song.id;
+  const isInQueue = queue.some((item: Song) => item.id === song.id);
+  const name = song.name || song.title || "";
+  const artistName =
+    song?.artist_map?.artists
+      ?.slice(0, 3)
+      ?.map((artist) => artist.name)
+      .join(", ") || song?.name;
+
+  const handlePlayClick = async () => {
+    try {
+      if (isCurrentSong) {
+        if (isPlaying) {
+          audioManager?.pause();
+        } else {
+          audioManager?.play();
+        }
+        return;
+      }
+
+      if (song?.download_url) {
+        setCurrentSong(song);
+        if (!isInQueue) {
+          addToQueueAction(song);
+        }
+        addToHistory.mutate({
+          songData: song,
+          playedTime: 10,
+        });
+      }
+    } catch (err: any) {
+      console.error("Error fetching song:", err);
+    }
+  };
+
   const handleAddToQueue = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -199,86 +240,38 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
 
   return (
     <div
+      key={song.id}
       className={cn(
-        "group relative overflow-hidden transition-all duration-200 ease-out hover:scale-[1.005]",
-        isCurrentSong && "scale-[1.005]",
+        "group relative overflow-hidden hover:bg-primary/5",
+        isCurrentSong && "bg-primary/5",
       )}
     >
-      {/* Subtle Accent Line */}
-      <div
-        className={cn(
-          "absolute left-0 top-0 bottom-0 w-0.5 transition-all duration-300",
-          isCurrentSong
-            ? "bg-primary"
-            : "bg-transparent group-hover:bg-muted-foreground/20",
-        )}
-      />
-
-      {/* Compact Card Container */}
-      <div
-        className={cn(
-          "relative flex items-center gap-3 p-2.5 pl-4 bg-card/50 hover:bg-card/80 transition-all duration-200",
-          isCurrentSong && "bg-primary/5",
-        )}
-      >
-        {/* Compact Album Art */}
+      <div className="relative flex items-center gap-3">
         <div
-          className="relative cursor-pointer group/art flex-shrink-0"
-          onClick={
-            song.type === "song"
-              ? handlePlayClick
-              : () => router.push(`/music/${song.type}/${song.id}`)
-          }
+          className="relative w-14 h-14 overflow-hidden"
+          onClick={handlePlayClick}
         >
-          <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-muted transition-all duration-200 group-hover/art:scale-105">
-            <LazyImage
-              src={
-                Array.isArray(song.image) ? song.image?.[1].link : song.image
-              }
-              alt={name}
-              height={44}
-              width={44}
-              className="w-full h-full object-cover"
-            />
-
-            {/* Play Overlay */}
-            {song.type === "song" && (
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover/art:opacity-100 transition-all duration-150 rounded-lg">
-                {loading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                ) : isCurrentSong && isPlaying ? (
-                  <AudioWave />
-                ) : (
-                  <Play className="w-3.5 h-3.5 text-primary fill-primary" />
-                )}
-              </div>
-            )}
-          </div>
+          <LazyImage
+            src={Array.isArray(song.image) ? song.image?.[1].link : song.image}
+            alt={name}
+            height={56}
+            width={56}
+            className="w-full h-full object-cover"
+          />
+          {isCurrentSong && isPlaying && (
+            <div className="absolute left-0 top-0 w-14 h-14 bg-primary/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
+              <AudioWave width="2px" />
+            </div>
+          )}
         </div>
 
         {/* Song Information */}
         <div
           className="flex-1 min-w-0 cursor-pointer"
-          onClick={
-            song.type === "song"
-              ? handlePlayClick
-              : () => router.push(`/music/${song.type}/${song.id}`)
-          }
+          onClick={handlePlayClick}
         >
           <div className="flex items-center gap-2 mb-0.5">
-            <h4
-              className={cn(
-                "text-sm font-medium line-clamp-1 transition-colors duration-200",
-                isCurrentSong
-                  ? "text-primary"
-                  : "text-foreground group-hover:text-primary",
-              )}
-            >
-              {name}
-            </h4>
-            {isCurrentSong && (
-              <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />
-            )}
+            <h4 className="text-sm font-medium line-clamp-1">{name}</h4>
           </div>
           <p className="text-xs text-muted-foreground line-clamp-1">
             {artistName}
@@ -287,7 +280,7 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
 
         {/* Minimal Actions */}
         {song.type === "song" && (
-          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="flex items-center transform translate-x-8 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 ease-out">
             <Button
               variant="ghost"
               size="sm"
@@ -339,17 +332,72 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
                 >
                   {isInQueue ? "Remove from queue" : "Add to queue"}
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setIsModalOpen(true)}
-                  className="cursor-pointer text-sm"
-                >
-                  Add to playlist
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         )}
+      </div>
+    </div>
+  );
+});
+
+export const ArtistCard = memo(({ artist }: { artist: Artist }) => {
+  const router = useRouter();
+
+  if (!artist?.name || !artist?.image) return null;
+
+  const imageUrl = useMemo(
+    () => (Array.isArray(artist.image) ? artist.image[2].link : artist.image),
+    [artist.image],
+  );
+
+  const handleClick = useCallback(() => {
+    router.push(`/music/artist/${artist.id}`);
+  }, [artist.id, router]);
+
+  return (
+    <div
+      key={artist.id}
+      className="group cursor-pointer w-44"
+      onClick={handleClick}
+    >
+      {/* Main Card */}
+      <div className="relative rounded-lg overflow-hidden hover:bg-primary/5 transition-colors duration-300">
+        {/* Circular Artist Image Section */}
+        <div className="relative p-4">
+          <div className="relative w-full aspect-square overflow-hidden rounded-full ring-4 ring-background shadow-lg">
+            <LazyImage
+              src={imageUrl}
+              alt={artist.name}
+              height={170}
+              width={176}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+
+            {/* Online Status Indicator */}
+            <div className="absolute bottom-2 right-2 w-6 h-6 bg-primary rounded-full border-4 border-background shadow-lg animate-pulse" />
+          </div>
+
+          {/* Artist Badge */}
+          <div className="absolute top-6 left-6 transform -translate-x-8 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 ease-out">
+            <div className="flex items-center gap-1 px-2 py-1 bg-background/90 backdrop-blur-sm rounded-full border border-border/30 shadow-lg">
+              <User className="w-3 h-3 text-primary" />
+              <span className="text-xs text-foreground font-medium">
+                Artist
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Artist Information */}
+        <div className="px-4 pb-4">
+          <div className="text-center space-y-1">
+            <h3 className="text-base font-semibold line-clamp-1 transition-colors duration-300 text-foreground group-hover:text-primary">
+              {artist.name}
+            </h3>
+            <p className="text-sm text-muted-foreground">Artist</p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -360,66 +408,64 @@ export const AlbumCard = memo(({ album }: { album: Album }) => {
   const name = useMemo(() => album.name, [album]);
 
   const handleClick = useCallback(
-    () => router.push(`/music/album/${album.album_id || album?.id}`),
+    () => router.push(`/album/${album.album_id ?? album?.id}`),
     [album, router],
   );
 
   return (
-    <div className="group cursor-pointer w-36 h-48" onClick={handleClick}>
-      {/* Tilt Container */}
-      <div className="relative h-full transition-all duration-500 ease-out group-hover:scale-105 group-hover:-rotate-1">
-        {/* Vinyl Record Stack Effect */}
-        <div className="relative h-36 mb-3">
-          {/* Shadow Records */}
-          <div className="absolute inset-0 bg-muted/40 rounded-full rotate-2 scale-95 blur-sm" />
-          <div className="absolute inset-1 bg-muted/60 rounded-full -rotate-1 scale-98 blur-[1px]" />
+    <div
+      key={album.id}
+      className="group cursor-pointer w-44"
+      onClick={handleClick}
+    >
+      <div className="relative rounded-lg overflow-hidden hover:bg-primary/5 transition-colors duration-300">
+        <div className="relative p-3">
+          <div className="absolute inset-3 bg-gray-800/20 rounded-full blur-sm transform rotate-2 scale-95" />
 
-          {/* Main Record */}
-          <div className="relative w-full h-full bg-gradient-to-br from-card to-muted rounded-full border border-border/30 overflow-hidden shadow-lg">
+          <div className="relative aspect-square overflow-hidden rounded-full border-4 border-gray-800 shadow-2xl bg-gray-900">
             <LazyImage
               src={album.image?.[2]?.link}
               alt={name}
-              height={144}
-              width={144}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12"
+              height={170}
+              width={176}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:rotate-12 group-hover:scale-105"
             />
 
             {/* Center Hole */}
-            <div className="absolute top-1/2 left-1/2 w-8 h-8 bg-background rounded-full border-4 border-muted transform -translate-x-1/2 -translate-y-1/2 shadow-inner">
-              <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-muted rounded-full transform -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute top-1/2 left-1/2 w-8 h-8 bg-background rounded-full border-4 border-gray-600 transform -translate-x-1/2 -translate-y-1/2 shadow-inner z-10">
+              <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-gray-400 rounded-full transform -translate-x-1/2 -translate-y-1/2" />
             </div>
 
-            {/* Spinning Indicator */}
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <div className="w-6 h-6 bg-background/90 backdrop-blur-sm rounded-full border border-border/30 flex items-center justify-center">
-                <Disc3 className="w-3 h-3 text-muted-foreground animate-spin" />
-              </div>
-            </div>
-
-            {/* Floating Play Button */}
-            <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-              <div className="w-12 h-12 bg-primary rounded-full shadow-xl flex items-center justify-center hover:scale-110 transition-transform duration-200 border-4 border-background">
-                <Play className="w-5 h-5 text-primary-foreground fill-primary-foreground ml-0.5" />
-              </div>
+            {/* Play Button */}
+            <div className="absolute bottom-2 right-2 transform translate-x-8 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 ease-out">
+              <Button
+                size="sm"
+                className="w-10 h-10 rounded-full bg-primary/90 hover:bg-primary hover:scale-110 transition-all duration-200 shadow-lg"
+              >
+                <Play className="w-4 h-4 text-primary-foreground fill-primary-foreground ml-0.5" />
+              </Button>
             </div>
           </div>
         </div>
 
         {/* Album Information */}
-        <div className="space-y-2 px-1">
-          <h3 className="text-sm font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">
-            {name}
-          </h3>
-          {album.language && (
-            <div className="inline-flex">
-              <Badge
-                variant="secondary"
-                className="text-xs h-5 px-2 rounded-full bg-muted/50 hover:bg-muted transition-colors"
-              >
-                {album.language}
-              </Badge>
+        <div className="p-4">
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold line-clamp-1 transition-colors duration-300 text-foreground group-hover:text-primary">
+              {name}
+            </h3>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">Album</p>
+              {album.language && (
+                <Badge
+                  variant="secondary"
+                  className="text-xs h-5 px-2 rounded-full bg-muted/50 hover:bg-muted transition-colors"
+                >
+                  {album.language}
+                </Badge>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
@@ -439,56 +485,64 @@ export const PlaylistCard = memo(({ playlist }: { playlist: Playlist }) => {
   );
 
   const handleClick = useCallback(
-    () => router.push(`/music/playlist/${playlist.id}`),
+    () => router.push(`/playlist/${playlist.id}`),
     [playlist.id, router],
   );
 
   return (
-    <div className="group cursor-pointer w-36 h-44" onClick={handleClick}>
-      {/* Clean Card Design */}
-      <div className="relative h-32 mb-3 transition-all duration-300 ease-out group-hover:scale-[1.02] group-hover:-translate-y-1">
-        {/* Subtle Background Cards */}
-        <div className="absolute inset-0 bg-muted/20 rounded-xl transform rotate-1 scale-98" />
-        <div className="absolute inset-0 bg-muted/40 rounded-xl transform -rotate-0.5 scale-99" />
+    <div
+      key={playlist.id}
+      className="group cursor-pointer w-44"
+      onClick={handleClick}
+    >
+      {/* Main Card with Stacked Effect */}
+      <div className="relative rounded-lg overflow-hidden hover:bg-primary/5">
+        {/* Stacked Cards Section */}
+        <div className="relative">
+          <div className="relative aspect-square overflow-hidden rounded-lg border border-border/30 shadow-lg">
+            <LazyImage
+              src={imageUrl}
+              alt={playlist.name}
+              height={170}
+              width={176}
+              className="w-full h-full object-cover"
+            />
 
-        {/* Main Card */}
-        <div className="relative w-full h-full bg-card rounded-xl border border-border/30 overflow-hidden shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:border-primary/20">
-          <LazyImage
-            src={imageUrl}
-            alt={playlist.name}
-            height={128}
-            width={144}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+            {/* Gradient overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
-          {/* Simple Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-background/20" />
-
-          {/* Clean Icon Badge */}
-          <div className="absolute top-3 right-3">
-            <div className="w-7 h-7 bg-background/80 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/20">
-              <ListMusic className="w-3.5 h-3.5 text-muted-foreground" />
+            {/* Stack indicator */}
+            <div className="absolute top-2 left-2 opacity-60 group-hover:opacity-100 transition-all duration-300">
+              <div className="flex flex-col gap-0.5">
+                <div className="w-6 h-1 bg-primary rounded-full" />
+                <div className="w-5 h-1 bg-primary/60 rounded-full" />
+                <div className="w-4 h-1 bg-primary/40 rounded-full" />
+              </div>
             </div>
-          </div>
 
-          {/* Simple Bottom Label */}
-          <div className="absolute bottom-3 left-3 right-3">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-              <span className="text-xs text-muted-foreground font-medium">
-                Playlist
-              </span>
+            {/* Play Button */}
+            <div className="absolute bottom-2 right-2 transform translate-x-8 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 ease-out">
+              <Button
+                size="sm"
+                className="w-10 h-10 rounded-full bg-primary/90 hover:bg-primary hover:scale-110 transition-all duration-200 shadow-lg"
+              >
+                <Play className="w-4 h-4 text-primary-foreground fill-primary-foreground ml-0.5" />
+              </Button>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Clean Information */}
-      <div className="space-y-1">
-        <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-300">
-          {playlist.name}
-        </h3>
-        <p className="text-xs text-muted-foreground line-clamp-1">{subtitle}</p>
+        {/* Playlist Information */}
+        <div className="p-4">
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold line-clamp-1 transition-colors duration-300 text-foreground group-hover:text-primary">
+              {playlist.name}
+            </h3>
+            <p className="text-sm text-muted-foreground line-clamp-1">
+              {subtitle}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

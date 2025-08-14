@@ -2,8 +2,10 @@
 
 import {
   addToHistory,
+  getAlbumDetails,
   getHomePageMusic,
   getMusicHistory,
+  getPlaylistDetails,
   getRecentMusic,
   getRelatedSongs,
 } from "@/api/music";
@@ -57,5 +59,21 @@ export const useRelatedSongs = (songId: string | undefined) => {
     queryKey: ["relatedSongs", songId],
     queryFn: () => getRelatedSongs(songId!),
     enabled: !!songId, // Only fetch if songId is provided
+  });
+};
+
+export const usePlaylistDetails = (playlistId: string | undefined) => {
+  return useQuery({
+    queryKey: ["playlistDetails", playlistId],
+    queryFn: () => getPlaylistDetails(playlistId!),
+    enabled: !!playlistId,
+  });
+};
+
+export const useAlbumDetails = (albumId: string | undefined) => {
+  return useQuery({
+    queryKey: ["albumDetails", albumId],
+    queryFn: () => getAlbumDetails(albumId!),
+    enabled: !!albumId,
   });
 };

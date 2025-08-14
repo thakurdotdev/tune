@@ -16,7 +16,7 @@ const LazyImage = ({
 }) => {
   return (
     <LazyLoadImage
-      effect="black-and-white"
+      effect="blur"
       height={height}
       width={width}
       src={src}

@@ -108,7 +108,7 @@ export class AudioManager {
       if (this.currentHowl && this.currentHowl.playing()) {
         this.onTimeUpdate(this.currentHowl.seek() as number);
       }
-    }, 100); // More frequent updates for smoother UI
+    }, 250); // More frequent updates (every 250ms) for smoother UI
   }
 
   private stopTimeUpdates() {
@@ -121,8 +121,10 @@ export class AudioManager {
   async loadSong(song: Song, quality: AudioQuality = "highest"): Promise<void> {
     this.onBuffering(true);
 
-    // Stop current song
+    // Stop current song and reset time
     this.stop();
+    // Ensure time is reset to 0 when loading new song
+    this.onTimeUpdate(0);
 
     try {
       this.currentHowl = this.createHowl(song, quality);
@@ -174,11 +176,15 @@ export class AudioManager {
     }
 
     this.currentHowl.play();
+    // Ensure position is updated when starting playback
+    this.onTimeUpdate(this.currentHowl.seek() as number);
   }
 
   pause(): void {
     if (this.currentHowl) {
       this.currentHowl.pause();
+      // Ensure current position is reported when pausing for proper mobile notification display
+      this.onTimeUpdate(this.currentHowl.seek() as number);
     }
   }
 
@@ -190,11 +196,15 @@ export class AudioManager {
       this.currentHowl.unload();
       this.currentHowl = null;
     }
+
+    // Reset time to 0 when stopped
+    this.onTimeUpdate(0);
   }
 
   seek(position: number): void {
     if (this.currentHowl) {
       this.currentHowl.seek(position);
+      // Immediately update time to ensure responsive UI
       this.onTimeUpdate(position);
     }
   }
@@ -222,6 +232,13 @@ export class AudioManager {
 
   isPlaying(): boolean {
     return this.currentHowl ? this.currentHowl.playing() : false;
+  }
+
+  // Force position state update for mobile notifications
+  updatePositionState(): void {
+    if (this.currentHowl) {
+      this.onTimeUpdate(this.currentHowl.seek() as number);
+    }
   }
 
   // Crossfade between current and next song

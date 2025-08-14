@@ -4,6 +4,8 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactNode } from "react";
+import BottomPlayer from "./music/BottomPlayer";
+import PlayerProvider from "./PlayerProvider";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -32,7 +34,10 @@ export function Providers({ children }: ProvidersProps) {
       client={queryClient}
       persistOptions={{ persister: asyncStoragePersister }}
     >
-      {children}
+      <PlayerProvider>
+        {children}
+        <BottomPlayer />
+      </PlayerProvider>
     </PersistQueryClientProvider>
   );
 }

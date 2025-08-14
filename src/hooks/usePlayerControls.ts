@@ -1,7 +1,6 @@
 import type { Song } from "@/types/song";
 import { useCallback } from "react";
 import { useAudioStore } from "../stores/audioStore";
-import { useMediaSessionStore } from "../stores/mediaSessionStore";
 import { usePlaybackStore } from "../stores/playbackStore";
 
 export const usePlayerControls = () => {
@@ -12,8 +11,6 @@ export const usePlayerControls = () => {
   const setCurrentSong = usePlaybackStore((state) => state.setCurrentSong);
   const getNextSong = usePlaybackStore((state) => state.getNextSong);
   const getPreviousSong = usePlaybackStore((state) => state.getPreviousSong);
-
-  const { updatePlaybackState } = useMediaSessionStore();
 
   // Basic playback controls
   const play = useCallback(async () => {
@@ -43,8 +40,7 @@ export const usePlayerControls = () => {
     if (!audioManager) return;
     audioManager.stop();
     setCurrentSong(null);
-    updatePlaybackState("none");
-  }, [audioManager, setCurrentSong, updatePlaybackState]);
+  }, [audioManager, setCurrentSong]);
 
   // Navigation controls
   const playNext = useCallback(() => {

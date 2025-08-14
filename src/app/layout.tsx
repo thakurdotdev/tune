@@ -37,7 +37,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div className="min-h-screen bg-background">
+            <div className="bg-background relative min-h-screen container mx-auto px-4 lg:px-6">
               <Navbar />
               <main className="pb-20 lg:pb-24">{children}</main>
               <MobileNavbar />

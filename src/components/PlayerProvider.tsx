@@ -1,6 +1,12 @@
 import React, { useCallback, useEffect, useRef, useMemo } from "react";
 import { useAudioStore } from "../stores/audioStore";
-import { useMediaSessionStore } from "../stores/mediaSessionStore";
+import {
+  initializeMediaSession,
+  updateMetadata,
+  updatePlaybackState,
+  updatePosition,
+  cleanupMediaSession,
+} from "../stores/mediaSessionStore";
 import { usePlaybackStore } from "../stores/playbackStore";
 import { useSleepTimerStore } from "../stores/sleepTimerStore";
 import type { PlayerConfig } from "../types/music";
@@ -20,14 +26,12 @@ const defaultConfig: PlayerConfig = {
 };
 
 export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
-  ({ children, config: userConfig, user, loading = false }) => {
-    // Memoize config to prevent unnecessary re-renders
+  ({ children, config: userConfig }) => {
     const config = useMemo(
       () => ({ ...defaultConfig, ...userConfig }),
       [userConfig],
     );
 
-    // Use individual selectors for better performance
     const initializeAudioManager = useAudioStore(
       (state) => state.initializeAudioManager,
     );
@@ -45,7 +49,6 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
     const getNextSong = usePlaybackStore((state) => state.getNextSong);
     const getPreviousSong = usePlaybackStore((state) => state.getPreviousSong);
     const setCurrentSong = usePlaybackStore((state) => state.setCurrentSong);
-    const addToHistory = usePlaybackStore((state) => state.addToHistory);
 
     const shouldStopPlayback = useSleepTimerStore(
       (state) => state.shouldStopPlayback,
@@ -55,25 +58,16 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
       (state) => state.clearSleepTimer,
     );
 
-    const {
-      initializeMediaSession,
-      updateMetadata,
-      updatePlaybackState,
-      updatePosition,
-      cleanup: cleanupMediaSession,
-    } = useMediaSessionStore();
-
-    // Refs for preventing infinite loops and maintaining stable references
     const lastSongIdRef = useRef<string | null>(null);
     const isInitializedRef = useRef(false);
     const timeUpdateThrottleRef = useRef<number>(0);
+    const positionUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Optimized audio manager callbacks with better throttling and memoization
     const handleTimeUpdate = useCallback(
       (time: number) => {
-        // Throttle time updates to every 500ms for smoother performance
         const now = Date.now();
-        if (now - timeUpdateThrottleRef.current > 500) {
+        // Update more frequently (every 250ms instead of 500ms) for smoother mobile notification progress
+        if (now - timeUpdateThrottleRef.current > 250) {
           updateTime(time);
           if (currentSong) {
             updatePosition(time, audioManager?.getDuration() || 0);
@@ -99,13 +93,24 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
     const handlePause = useCallback(() => {
       setPlaying(false);
       updatePlaybackState("paused");
-    }, [setPlaying, updatePlaybackState]);
+
+      // Ensure position is updated when pausing for proper mobile notification display
+      if (currentSong && audioManager) {
+        const currentTime = audioManager.getCurrentTime();
+        const duration = audioManager.getDuration();
+        updatePosition(currentTime, duration);
+      }
+    }, [
+      setPlaying,
+      updatePlaybackState,
+      currentSong,
+      audioManager,
+      updatePosition,
+    ]);
 
     const handleEnd = useCallback(() => {
-      // Update songs remaining for sleep timer
       updateSongs();
 
-      // Check if we should stop due to sleep timer
       if (shouldStopPlayback()) {
         setPlaying(false);
         updatePlaybackState("none");
@@ -113,13 +118,16 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
         return;
       }
 
-      // Play next song
       const nextSong = getNextSong();
       if (nextSong) {
+        // Reset progress before switching to next song
+        updateTime(0);
         setCurrentSong(nextSong);
       } else {
         setPlaying(false);
         updatePlaybackState("none");
+        // Reset progress when playlist ends
+        updateTime(0);
       }
     }, [
       updateSongs,
@@ -129,19 +137,26 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
       clearSleepTimer,
       getNextSong,
       setCurrentSong,
+      updateTime,
     ]);
 
     const handleLoad = useCallback(() => {
       setLoading(false);
       setBuffering(false);
-    }, [setLoading, setBuffering]);
+
+      // Ensure position state is initialized when song loads
+      if (currentSong && audioManager) {
+        const duration = audioManager.getDuration();
+        const currentTime = audioManager.getCurrentTime();
+        updatePosition(currentTime, duration);
+      }
+    }, [setLoading, setBuffering, currentSong, audioManager, updatePosition]);
 
     const handleLoadError = useCallback(
       (error: any) => {
         console.error("Audio load error:", error);
         setLoading(false);
         setBuffering(false);
-        // Optionally show error to user or try next song
       },
       [setLoading, setBuffering],
     );
@@ -153,7 +168,6 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
       [setBuffering],
     );
 
-    // Memoize callbacks for audio manager to prevent re-initialization
     const audioCallbacks = useMemo(
       () => ({
         onTimeUpdate: handleTimeUpdate,
@@ -177,7 +191,6 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
       ],
     );
 
-    // Initialize audio manager - only once
     useEffect(() => {
       if (isInitializedRef.current) return;
 
@@ -187,11 +200,22 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
       console.log("AudioManager initialized");
     }, [initializeAudioManager, audioCallbacks]);
 
-    // Memoize media session callbacks
     const mediaSessionCallbacks = useMemo(
       () => ({
-        onPlay: () => audioManager?.play(),
-        onPause: () => audioManager?.pause(),
+        onPlay: () => {
+          if (audioManager && currentSong) {
+            audioManager.play();
+            setPlaying(true);
+            updatePlaybackState("playing");
+          }
+        },
+        onPause: () => {
+          if (audioManager) {
+            audioManager.pause();
+            setPlaying(false);
+            updatePlaybackState("paused");
+          }
+        },
         onPreviousTrack: () => {
           const prevSong = getPreviousSong();
           if (prevSong) {
@@ -216,10 +240,18 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
           }
         },
       }),
-      [audioManager, getPreviousSong, getNextSong, setCurrentSong],
+      [
+        audioManager,
+        currentSong,
+        setPlaying,
+        updatePlaybackState,
+        updatePosition,
+        getPreviousSong,
+        getNextSong,
+        setCurrentSong,
+      ],
     );
 
-    // Initialize media session - only when audioManager is available
     useEffect(() => {
       if (!audioManager) {
         console.log("MediaSession: Waiting for audioManager...");
@@ -230,7 +262,6 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
       initializeMediaSession(mediaSessionCallbacks);
     }, [initializeMediaSession, audioManager, mediaSessionCallbacks]);
 
-    // Handle song changes with optimized loading
     useEffect(() => {
       if (!audioManager || !currentSong) {
         if (!audioManager) {
@@ -239,24 +270,22 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
         return;
       }
 
-      // Prevent unnecessary reloads of the same song
       if (currentSong.id === lastSongIdRef.current) return;
 
       const loadAndPlaySong = async () => {
         try {
           setLoading(true);
+          updateTime(0);
 
-          // Load song with configured quality
           await audioManager.loadSong(currentSong, config.audioQuality);
 
-          // Update metadata for media session
           updateMetadata(currentSong);
 
-          // Preload next song if enabled (non-blocking)
+          updatePlaybackState("paused");
+
           if (config.preloadNext) {
             const nextSong = getNextSong();
             if (nextSong) {
-              // Don't await this to avoid blocking playback
               try {
                 audioManager.preloadNext(nextSong, config.audioQuality);
               } catch (error) {
@@ -265,17 +294,13 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
             }
           }
 
-          // Start playback
           audioManager.play();
 
-          // Update refs and history
           lastSongIdRef.current = currentSong.id;
-          addToHistory(currentSong);
         } catch (error) {
           console.error("Failed to load song:", error);
           setLoading(false);
 
-          // Auto-skip to next song on error
           const nextSong = getNextSong();
           if (nextSong && nextSong.id !== currentSong.id) {
             setCurrentSong(nextSong);
@@ -293,13 +318,15 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = React.memo(
       updateMetadata,
       getNextSong,
       setCurrentSong,
-      addToHistory,
+      updateTime,
     ]);
 
-    // Consolidated cleanup on unmount
     useEffect(() => {
       return () => {
-        console.log("Cleaning up PlayerProvider...");
+        if (positionUpdateIntervalRef.current) {
+          clearInterval(positionUpdateIntervalRef.current);
+        }
+
         destroyAudioManager();
         cleanupMediaSession();
         isInitializedRef.current = false;

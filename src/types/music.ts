@@ -104,6 +104,35 @@ export interface RecentMusicResponse {
   recentlyPlayed: Song[];
 }
 
+export interface PlaylistDetails {
+  id: string;
+  name: string;
+  header_desc: string;
+  list_count: number;
+  follower_count: number;
+  image: string;
+  songs: Song[];
+}
+
+export interface AlbumDetails {
+  id: string;
+  name: string;
+  header_desc: string;
+  subtitle: string;
+  year: number;
+  duration: number;
+  image: Array<{ quality: string; link: string }>;
+  artistmap: Array<{
+    id: string;
+    name: string;
+    url: string;
+    role: string;
+    type: string;
+    image: Array<{ quality: string; link: string }>;
+  }>;
+  songs: Song[];
+}
+
 export interface MusicHistoryParams {
   page: number;
   limit: number;
@@ -130,7 +159,6 @@ export interface AudioState {
 export interface PlaybackState {
   currentSong: Song | null;
   queue: Song[];
-  history: Song[];
   currentIndex: number;
   shuffle: boolean;
   repeat: "none" | "one" | "all";

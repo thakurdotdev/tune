@@ -32,21 +32,20 @@ const NowPlayingTab = memo(() => {
   }
 
   return (
-    <div className="h-full flex flex-col p-4 sm:p-6 max-w-2xl mx-auto gap-10 relative">
+    <div className="h-full flex flex-col max-w-2xl mx-auto gap-10 relative max-md:px-3">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent pointer-events-none" />
 
       {/* Album Art */}
       <div className="flex justify-center md:mb-5 relative z-10">
         <div className="w-full h-96 relative group">
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 via-transparent to-primary/10 opacity-50 blur-xl scale-105 group-hover:opacity-70 transition-opacity duration-300" />
-          <Avatar className="w-full h-full rounded-2xl shadow-2xl relative z-10 ring-1 ring-white/10">
+          <Avatar className="w-full h-full shadow-2xl relative z-10 ring-1 ring-white/10 rounded-none">
             <AvatarImage
               src={songImage}
               alt={currentSong.name}
-              className="object-cover"
+              className="object-cover rounded-none"
             />
-            <AvatarFallback className="text-4xl sm:text-6xl bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm">
+            <AvatarFallback className="text-4xl sm:text-6xl bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm rounded-none">
               <Music className="w-16 h-16 sm:w-20 sm:h-20 text-muted-foreground" />
             </AvatarFallback>
           </Avatar>

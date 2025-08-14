@@ -12,6 +12,7 @@ interface AudioStore extends AudioState {
   setPlaying: (playing: boolean) => void;
   setLoading: (loading: boolean) => void;
   setBuffering: (buffering: boolean) => void;
+  resetAudioState: () => void;
 
   // Audio manager instance
   audioManager: AudioManager | null;
@@ -42,9 +43,9 @@ export const useAudioStore = create<AudioStore>()(
 
     // Actions
     updateTime: (time: number) => {
-      // Throttle time updates to update only once per second
+      // Update more frequently for smoother UI - update if difference is >= 0.5 seconds
       const currentTime = get().currentTime;
-      if (Math.abs(time - currentTime) >= 1.0) {
+      if (Math.abs(time - currentTime) >= 0.5) {
         set({ currentTime: time });
       }
     },
@@ -59,6 +60,16 @@ export const useAudioStore = create<AudioStore>()(
     setPlaying: (playing: boolean) => set({ isPlaying: playing }),
     setLoading: (loading: boolean) => set({ isLoading: loading }),
     setBuffering: (buffering: boolean) => set({ isBuffering: buffering }),
+
+    // Reset audio state when changing songs
+    resetAudioState: () =>
+      set({
+        currentTime: 0,
+        duration: 0,
+        isPlaying: false,
+        isLoading: false,
+        isBuffering: false,
+      }),
 
     initializeAudioManager: (callbacks) => {
       // Destroy existing manager if any
