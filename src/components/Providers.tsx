@@ -8,6 +8,7 @@ import BottomPlayer from "./music/BottomPlayer";
 import PlayerProvider from "./PlayerProvider";
 import { AudioPlayerProvider } from "react-use-audio-player";
 import { PWAProvider } from "./PWAProvider";
+import { Toaster } from "./ui/sonner";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -38,6 +39,7 @@ export function Providers({ children }: ProvidersProps) {
       <PWAProvider>
         <AudioPlayerProvider>
           <PlayerProvider>
+            <Toaster />
             {children}
             <BottomPlayer />
           </PlayerProvider>

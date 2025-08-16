@@ -36,6 +36,7 @@ import LazyImage from "../LazyImage";
 import { useMegaMenu } from "@/queries/useMusic";
 import { MainNav } from "./main-nav";
 import { PWAInstallButton } from "../PWAControls";
+import { LanguagePicker } from "./language-picker";
 
 const navItems = [
   { icon: Home, label: "Home", href: "/", isActive: true },
@@ -96,27 +97,6 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center space-x-1">
             <>
               <MainNav megaMenu={megaMenu!} className="hidden lg:block" />
-
-              {navItems.slice(0, 4).map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Button
-                    key={item.href}
-                    variant={isActive ? "secondary" : "ghost"}
-                    size="sm"
-                    onClick={() => router.push(item.href)}
-                    className={cn(
-                      "flex items-center space-x-2 h-9 px-3 transition-all duration-200",
-                      isActive
-                        ? "bg-primary/10 text-primary hover:bg-primary/15"
-                        : "hover:bg-muted text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </Button>
-                );
-              })}
             </>
           </div>
         </div>
@@ -140,6 +120,7 @@ const Navbar = () => {
           <div className="hidden sm:block">
             <PWAInstallButton />
           </div>
+          <LanguagePicker />
 
           {/* Theme Toggle */}
           <Button

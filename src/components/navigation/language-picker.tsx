@@ -1,14 +1,10 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { setCookie } from "cookies-next";
 import { ChevronDown, Languages } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 
-import type { Lang } from "@/types";
-
-import { languages } from "@/config/languages";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import {
@@ -20,27 +16,39 @@ import {
 } from "../ui/dropdown-menu";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 
-type LanguagePickerProps = {
-  initialLanguages: Lang[];
-};
+export const languages = [
+  "Hindi",
+  "English",
+  "Punjabi",
+  "Tamil",
+  "Telugu",
+  "Marathi",
+  "Gujarati",
+  "Bengali",
+  "Kannada",
+  "Bhojpuri",
+  "Malayalam",
+  "Urdu",
+  "Haryanvi",
+  "Rajasthani",
+  "Odia",
+  "Assamese",
+] as const;
 
-export function LanguagePicker({ initialLanguages }: LanguagePickerProps) {
+export type Language = Lowercase<(typeof languages)[number]>;
+
+export function LanguagePicker() {
   const router = useRouter();
 
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [selectedLanguages, setSelectedLanguages] =
-    React.useState(initialLanguages);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([
+    "hindi",
+  ]);
 
   function updateLanguages() {
-    setCookie("language", selectedLanguages.join(","), {
-      path: "/",
-    });
-
     toast.success("Preferences updated!", {
       description: "Your language preferences have been updated.",
     });
-
-    router.refresh();
   }
 
   return (
@@ -56,7 +64,7 @@ export function LanguagePicker({ initialLanguages }: LanguagePickerProps) {
           <ChevronDown
             className={cn(
               "hidden size-4 duration-300 lg:inline-block",
-              isOpen && "rotate-180"
+              isOpen && "rotate-180",
             )}
           />
         </Button>
@@ -76,8 +84,8 @@ export function LanguagePicker({ initialLanguages }: LanguagePickerProps) {
         <ToggleGroup
           type="multiple"
           value={selectedLanguages}
-          onValueChange={(v) => setSelectedLanguages(v as Lang[])}
-          className="grid grid-cols-2 border-y py-2"
+          onValueChange={(v) => setSelectedLanguages(v as Language[])}
+          className="grid grid-cols-2 border-y py-2 w-full"
         >
           {languages.map((lang) => (
             <ToggleGroupItem
