@@ -2,14 +2,15 @@ import type { PlaybackState } from "@/types/music";
 import type { Song } from "@/types/song";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 
 interface PlaybackStore extends PlaybackState {
-  setCurrentSong: (song: Song | null) => void;
+  setIsPlaying: (isPlaying: boolean) => void;
+  setCurrentIndex: (index: number) => void;
   setQueue: (songs: Song[]) => void;
   addToQueue: (songs: Song | Song[]) => void;
   removeFromQueue: (index: number) => void;
   clearQueue: () => void;
-  setCurrentIndex: (index: number) => void;
   setShuffle: (shuffle: boolean) => void;
   setRepeat: (repeat: "none" | "one" | "all") => void;
 
@@ -20,6 +21,10 @@ interface PlaybackStore extends PlaybackState {
   moveQueueItem: (fromIndex: number, toIndex: number) => void;
   shuffleQueue: () => void;
   getShuffledQueue: () => Song[];
+
+  // Hydration helpers
+  _hasHydrated: boolean;
+  setHasHydrated: (hasHydrated: boolean) => void;
 }
 
 // Fisher-Yates shuffle algorithm
@@ -33,197 +38,208 @@ const shuffleArray = <T>(array: T[]): T[] => {
 };
 
 export const usePlaybackStore = create<PlaybackStore>()(
-  subscribeWithSelector((set, get) => ({
-    currentSong: null,
-    queue: [],
-    currentIndex: -1,
-    shuffle: false,
-    repeat: "none",
+  persist(
+    subscribeWithSelector((set, get) => ({
+      isPlaying: false,
+      queue: [],
+      currentIndex: -1,
+      shuffle: false,
+      repeat: "none",
+      _hasHydrated: false,
 
-    // Actions
-    setCurrentSong: (song) => {
-      set({ currentSong: song });
+      // Actions
+      setIsPlaying: (isPlaying) => set({ isPlaying }),
+      setHasHydrated: (hasHydrated) => set({ _hasHydrated: hasHydrated }),
 
-      if (song) {
+      setQueue: (songs) => {
+        set({ queue: songs, currentIndex: songs.length > 0 ? 0 : -1 });
+      },
+
+      addToQueue: (songs) => {
+        const songsArray = Array.isArray(songs) ? songs : [songs];
+        const currentQueue = get().queue;
+        const currentIndex = get().currentIndex;
+
+        // Filter out duplicates
+        const existingIds = new Set(currentQueue.map((s) => s.id));
+        const newSongs = songsArray.filter((s) => !existingIds.has(s.id));
+
+        if (newSongs.length > 0) {
+          const updatedQueue = [...currentQueue, ...newSongs];
+          // Only update currentIndex if the queue was empty before
+          const newIndex = currentQueue.length === 0 ? 0 : currentIndex;
+
+          set({
+            queue: updatedQueue,
+            currentIndex: newIndex,
+          });
+        }
+      },
+
+      removeFromQueue: (index) => {
         const queue = get().queue;
-        const index = queue.findIndex((s) => s.id === song.id);
-        if (index !== -1) {
+        const currentIndex = get().currentIndex;
+
+        if (index < 0 || index >= queue.length) return;
+
+        const newQueue = queue.filter((_, i) => i !== index);
+        let newIndex = currentIndex;
+
+        if (index < currentIndex) {
+          // Song removed before current song, shift index down
+          newIndex = currentIndex - 1;
+        } else if (index === currentIndex) {
+          // Removing current song - this will require a reload
+          if (newQueue.length === 0) {
+            newIndex = -1;
+          } else {
+            // Try to keep the same index, or go to the last song if we're at the end
+            newIndex = Math.min(currentIndex, newQueue.length - 1);
+          }
+        }
+        // If index > currentIndex, no change needed to currentIndex
+
+        set({
+          queue: newQueue,
+          currentIndex: newIndex,
+        });
+      },
+
+      clearQueue: () => set({ queue: [], currentIndex: -1 }),
+
+      setCurrentIndex: (index) => {
+        const queue = get().queue;
+        if (index >= 0 && index < queue.length) {
           set({ currentIndex: index });
         }
-      } else {
-        // Reset index when no song is playing
-        set({ currentIndex: -1 });
-      }
-    },
+      },
 
-    setQueue: (songs) => {
-      set({ queue: songs, currentIndex: songs.length > 0 ? 0 : -1 });
-    },
+      setShuffle: (shuffle) => set({ shuffle }),
 
-    addToQueue: (songs) => {
-      const songsArray = Array.isArray(songs) ? songs : [songs];
-      const currentQueue = get().queue;
+      setRepeat: (repeat) => set({ repeat }),
 
-      // Filter out duplicates
-      const existingIds = new Set(currentQueue.map((s) => s.id));
-      const newSongs = songsArray.filter((s) => !existingIds.has(s.id));
+      getNextSong: () => {
+        const { queue, currentIndex, repeat, shuffle } = get();
 
-      if (newSongs.length > 0) {
-        const updatedQueue = [...currentQueue, ...newSongs];
-        set({
-          queue: updatedQueue,
-          currentIndex: currentQueue.length === 0 ? 0 : get().currentIndex,
-        });
-      }
-    },
+        if (queue.length === 0) return null;
 
-    removeFromQueue: (index) => {
-      const queue = get().queue;
-      const currentIndex = get().currentIndex;
-
-      if (index < 0 || index >= queue.length) return;
-
-      const newQueue = queue.filter((_, i) => i !== index);
-      let newIndex = currentIndex;
-
-      if (index < currentIndex) {
-        newIndex = currentIndex - 1;
-      } else if (index === currentIndex) {
-        // If removing current song, stay at same index or go to previous
-        newIndex = Math.min(currentIndex, newQueue.length - 1);
-      }
-
-      set({
-        queue: newQueue,
-        currentIndex: newQueue.length === 0 ? -1 : newIndex,
-      });
-    },
-
-    clearQueue: () => set({ queue: [], currentIndex: -1 }),
-
-    setCurrentIndex: (index) => {
-      const queue = get().queue;
-      if (index >= 0 && index < queue.length) {
-        set({ currentIndex: index });
-      }
-    },
-
-    setShuffle: (shuffle) => set({ shuffle }),
-
-    setRepeat: (repeat) => set({ repeat }),
-
-    getNextSong: () => {
-      const { queue, currentIndex, repeat, shuffle } = get();
-
-      if (queue.length === 0) return null;
-
-      if (repeat === "one") {
-        return queue[currentIndex] || null;
-      }
-
-      let nextIndex = currentIndex + 1;
-
-      if (nextIndex >= queue.length) {
-        if (repeat === "all") {
-          nextIndex = 0;
-        } else {
-          return null;
+        if (repeat === "one") {
+          return queue[currentIndex] || null;
         }
-      }
 
-      // Update the current index to the next song for proper state tracking
-      set({ currentIndex: nextIndex });
-      return queue[nextIndex] || null;
-    },
+        let nextIndex = currentIndex + 1;
 
-    getPreviousSong: () => {
-      const { queue, currentIndex, repeat } = get();
-
-      if (queue.length === 0) return null;
-
-      if (repeat === "one") {
-        return queue[currentIndex] || null;
-      }
-
-      let prevIndex = currentIndex - 1;
-
-      if (prevIndex < 0) {
-        if (repeat === "all") {
-          prevIndex = queue.length - 1;
-        } else {
-          return null;
+        if (nextIndex >= queue.length) {
+          if (repeat === "all") {
+            nextIndex = 0;
+          } else {
+            return null;
+          }
         }
-      }
 
-      // Update the current index to the previous song for proper state tracking
-      set({ currentIndex: prevIndex });
-      return queue[prevIndex] || null;
-    },
+        // Update the current index to the next song for proper state tracking
+        set({ currentIndex: nextIndex });
+        return queue[nextIndex] || null;
+      },
 
-    // Queue management
-    moveQueueItem: (fromIndex, toIndex) => {
-      const queue = get().queue;
-      if (
-        fromIndex < 0 ||
-        fromIndex >= queue.length ||
-        toIndex < 0 ||
-        toIndex >= queue.length
-      ) {
-        return;
-      }
+      getPreviousSong: () => {
+        const { queue, currentIndex, repeat } = get();
 
-      const newQueue = [...queue];
-      const [movedItem] = newQueue.splice(fromIndex, 1);
-      newQueue.splice(toIndex, 0, movedItem);
+        if (queue.length === 0) return null;
 
-      // Adjust current index if necessary
-      let newCurrentIndex = get().currentIndex;
-      if (fromIndex === newCurrentIndex) {
-        newCurrentIndex = toIndex;
-      } else if (fromIndex < newCurrentIndex && toIndex >= newCurrentIndex) {
-        newCurrentIndex -= 1;
-      } else if (fromIndex > newCurrentIndex && toIndex <= newCurrentIndex) {
-        newCurrentIndex += 1;
-      }
+        if (repeat === "one") {
+          return queue[currentIndex] || null;
+        }
 
-      set({ queue: newQueue, currentIndex: newCurrentIndex });
-    },
+        let prevIndex = currentIndex - 1;
 
-    shuffleQueue: () => {
-      const { queue, currentSong } = get();
-      if (queue.length <= 1) return;
+        if (prevIndex < 0) {
+          if (repeat === "all") {
+            prevIndex = queue.length - 1;
+          } else {
+            return null;
+          }
+        }
 
-      // Keep current song at the beginning if it exists
-      let songsToShuffle = [...queue];
-      let currentSongIndex = -1;
+        // Update the current index to the previous song for proper state tracking
+        set({ currentIndex: prevIndex });
+        return queue[prevIndex] || null;
+      },
 
-      if (currentSong) {
-        currentSongIndex = queue.findIndex((s) => s.id === currentSong.id);
-        if (currentSongIndex !== -1) {
+      // Queue management
+      moveQueueItem: (fromIndex, toIndex) => {
+        const queue = get().queue;
+        if (
+          fromIndex < 0 ||
+          fromIndex >= queue.length ||
+          toIndex < 0 ||
+          toIndex >= queue.length
+        ) {
+          return;
+        }
+
+        const newQueue = [...queue];
+        const [movedItem] = newQueue.splice(fromIndex, 1);
+        newQueue.splice(toIndex, 0, movedItem);
+
+        // Adjust current index if necessary
+        let newCurrentIndex = get().currentIndex;
+        if (fromIndex === newCurrentIndex) {
+          newCurrentIndex = toIndex;
+        } else if (fromIndex < newCurrentIndex && toIndex >= newCurrentIndex) {
+          newCurrentIndex -= 1;
+        } else if (fromIndex > newCurrentIndex && toIndex <= newCurrentIndex) {
+          newCurrentIndex += 1;
+        }
+
+        set({ queue: newQueue, currentIndex: newCurrentIndex });
+      },
+
+      shuffleQueue: () => {
+        const { queue, currentIndex } = get();
+        if (queue.length <= 1) return;
+
+        // Keep current song at the beginning if it exists
+        let songsToShuffle = [...queue];
+        let currentSongIndex = -1;
+
+        if (currentIndex !== -1) {
+          currentSongIndex = currentIndex;
           songsToShuffle = queue.filter((_, i) => i !== currentSongIndex);
         }
-      }
 
-      const shuffled = shuffleArray(songsToShuffle);
+        const shuffled = shuffleArray(songsToShuffle);
 
-      const newQueue =
-        currentSong && currentSongIndex !== -1
-          ? [currentSong, ...shuffled]
-          : shuffled;
+        const newQueue =
+          currentIndex !== -1 ? [queue[currentIndex], ...shuffled] : shuffled;
 
-      set({
-        queue: newQueue,
-        currentIndex: currentSong ? 0 : -1,
-      });
+        set({
+          queue: newQueue,
+          currentIndex: currentIndex !== -1 ? 0 : -1,
+        });
+      },
+
+      getShuffledQueue: () => {
+        const { queue } = get();
+        return shuffleArray(queue);
+      },
+    })),
+    {
+      name: "playback-store",
+      partialize: (state) => ({
+        queue: state.queue,
+        currentIndex: state.currentIndex,
+        shuffle: state.shuffle,
+        repeat: state.repeat,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     },
-
-    getShuffledQueue: () => {
-      const { queue } = get();
-      return shuffleArray(queue);
-    },
-  })),
+  ),
 );
 
-export const useCurrentSong = () =>
-  usePlaybackStore((state) => state.currentSong);
 export const useQueue = () => usePlaybackStore((state) => state.queue);
+export const useCurrentIndex = () =>
+  usePlaybackStore((state) => state.currentIndex);
+export const useIsPlaying = () => usePlaybackStore((state) => state.isPlaying);

@@ -3,7 +3,9 @@
 import {
   addToHistory,
   getAlbumDetails,
+  getArtistDetails,
   getHomePageMusic,
+  getMegaMenu,
   getMusicHistory,
   getPlaylistDetails,
   getRecentMusic,
@@ -75,5 +77,20 @@ export const useAlbumDetails = (albumId: string | undefined) => {
     queryKey: ["albumDetails", albumId],
     queryFn: () => getAlbumDetails(albumId!),
     enabled: !!albumId,
+  });
+};
+
+export const useArtistDetails = (artistId: string | undefined) => {
+  return useQuery({
+    queryKey: ["artistDetails", artistId],
+    queryFn: () => getArtistDetails(artistId!),
+    enabled: !!artistId,
+  });
+};
+
+export const useMegaMenu = () => {
+  return useQuery({
+    queryKey: ["megaMenu"],
+    queryFn: () => getMegaMenu("hindi"),
   });
 };

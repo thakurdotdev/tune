@@ -6,6 +6,8 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { ReactNode } from "react";
 import BottomPlayer from "./music/BottomPlayer";
 import PlayerProvider from "./PlayerProvider";
+import { AudioPlayerProvider } from "react-use-audio-player";
+import { PWAProvider } from "./PWAProvider";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -17,13 +19,12 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       retry: 1,
-      gcTime: 1000 * 60 * 5, // 5 minutes
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: Infinity,
+      staleTime: Infinity,
     },
   },
 });
 
-// Create persister only on client-side to avoid SSR issues
 const asyncStoragePersister = createAsyncStoragePersister({
   storage: typeof window !== "undefined" ? localStorage : undefined,
 });
@@ -34,10 +35,14 @@ export function Providers({ children }: ProvidersProps) {
       client={queryClient}
       persistOptions={{ persister: asyncStoragePersister }}
     >
-      <PlayerProvider>
-        {children}
-        <BottomPlayer />
-      </PlayerProvider>
+      <PWAProvider>
+        <AudioPlayerProvider>
+          <PlayerProvider>
+            {children}
+            <BottomPlayer />
+          </PlayerProvider>
+        </AudioPlayerProvider>
+      </PWAProvider>
     </PersistQueryClientProvider>
   );
 }

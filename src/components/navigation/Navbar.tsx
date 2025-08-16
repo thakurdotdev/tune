@@ -33,6 +33,9 @@ import { useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import LazyImage from "../LazyImage";
+import { useMegaMenu } from "@/queries/useMusic";
+import { MainNav } from "./main-nav";
+import { PWAInstallButton } from "../PWAControls";
 
 const navItems = [
   { icon: Home, label: "Home", href: "/", isActive: true },
@@ -51,6 +54,10 @@ const Navbar = () => {
   const user = useUserStore((state) => state.user);
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
+
+  const {
+    data: megaMenu = { top_artists: [], top_playlists: [], new_releases: [] },
+  } = useMegaMenu();
 
   useEffect(() => {
     setMounted(true);
@@ -71,9 +78,12 @@ const Navbar = () => {
         {/* Logo Section */}
         <div className="flex items-center space-x-8">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-none shadow-lg">
+            <div
+              className="flex items-center justify-center w-10 h-10 rounded-none shadow-lg"
+              onClick={() => router.push("/")}
+            >
               <LazyImage
-                src="./logo.png"
+                src="/logo.png"
                 alt="Logo"
                 height={40}
                 width={40}
@@ -84,26 +94,30 @@ const Navbar = () => {
 
           {/* Navigation Links - Hidden on mobile */}
           <div className="hidden lg:flex items-center space-x-1">
-            {navItems.slice(0, 4).map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Button
-                  key={item.href}
-                  variant={isActive ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => router.push(item.href)}
-                  className={cn(
-                    "flex items-center space-x-2 h-9 px-3 transition-all duration-200",
-                    isActive
-                      ? "bg-primary/10 text-primary hover:bg-primary/15"
-                      : "hover:bg-muted text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </Button>
-              );
-            })}
+            <>
+              <MainNav megaMenu={megaMenu!} className="hidden lg:block" />
+
+              {navItems.slice(0, 4).map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Button
+                    key={item.href}
+                    variant={isActive ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => router.push(item.href)}
+                    className={cn(
+                      "flex items-center space-x-2 h-9 px-3 transition-all duration-200",
+                      isActive
+                        ? "bg-primary/10 text-primary hover:bg-primary/15"
+                        : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </Button>
+                );
+              })}
+            </>
           </div>
         </div>
 
@@ -122,6 +136,11 @@ const Navbar = () => {
 
         {/* Right Section */}
         <div className="flex items-center space-x-3">
+          {/* PWA Install Button */}
+          <div className="hidden sm:block">
+            <PWAInstallButton />
+          </div>
+
           {/* Theme Toggle */}
           <Button
             variant="ghost"

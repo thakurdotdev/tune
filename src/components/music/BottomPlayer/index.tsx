@@ -1,9 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { memo, useEffect, useMemo, useState } from "react";
-
 import {
-  useCurrentSong,
+  useCurrentIndex,
   usePlaybackStore,
   useQueue,
 } from "@/stores/playbackStore";
@@ -14,30 +13,23 @@ import SongInfo from "./SongInfo";
 import { useRelatedSongs } from "@/queries/useMusic";
 
 const BottomPlayer = () => {
-  const currentSong = useCurrentSong();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const addToQueueAction = usePlaybackStore((state) => state.addToQueue);
+  const currentIndex = useCurrentIndex();
   const queue = useQueue();
+  const addToQueue = usePlaybackStore((state) => state.addToQueue);
 
-  const currentIndex = useMemo(
-    () =>
-      currentSong?.id
-        ? queue.findIndex((song) => song.id === currentSong.id)
-        : -1,
-    [currentSong?.id, queue],
-  );
+  const currentSong = queue[currentIndex] || null;
+  const isLastSong = currentIndex === queue.length - 1;
 
-  const shouldFetchRelated =
-    queue.length < 2 || currentIndex >= queue.length - 1;
-  const { data: relatedSongs } = useRelatedSongs(
-    shouldFetchRelated ? currentSong?.id : undefined,
+  const getRelatedSongs = useRelatedSongs(
+    isLastSong ? currentSong?.id : undefined,
   );
 
   useEffect(() => {
-    if (shouldFetchRelated && relatedSongs && relatedSongs.length > 0) {
-      addToQueueAction(relatedSongs);
+    if (getRelatedSongs.data?.length) {
+      addToQueue(getRelatedSongs.data);
     }
-  }, [shouldFetchRelated, relatedSongs, addToQueueAction]);
+  }, [getRelatedSongs.data, addToQueue]);
 
   if (!currentSong) return null;
 

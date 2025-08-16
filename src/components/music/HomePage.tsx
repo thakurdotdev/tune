@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { AlbumCard, ArtistCard, PlaylistCard, SongCard } from "./Cards";
+import { OfflineIndicator } from "../PWAControls";
 
 const SectionHeader = React.memo(
   ({
@@ -31,18 +32,20 @@ const SectionHeader = React.memo(
     className?: string;
   }) => {
     return (
-      <div className={cn("flex items-center gap-3 mb-3", className)}>
+      <div className={cn("flex items-start gap-3 mb-4", className)}>
         {Icon && (
-          <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary">
-            <Icon className="w-8 h-8" />
+          <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary/5 text-primary mt-1">
+            <Icon className="w-4 h-4 md:w-5 md:h-5" />
           </div>
         )}
-        <div className="flex-1">
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg md:text-xl font-semibold tracking-tight text-foreground leading-tight">
             {title}
           </h2>
           {subtitle && (
-            <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
+            <p className="text-xs md:text-sm text-muted-foreground mt-0.5 leading-relaxed">
+              {subtitle}
+            </p>
           )}
         </div>
       </div>
@@ -65,7 +68,7 @@ const LazySection = React.memo(
     className?: string;
   }) => {
     return (
-      <section className={cn("space-y-6", className)}>
+      <section className={cn("space-y-3 md:space-y-4", className)}>
         <SectionHeader title={title} subtitle={subtitle} icon={icon} />
         {children}
       </section>
@@ -76,52 +79,59 @@ const LazySection = React.memo(
 const ScrollableSection = React.memo(
   ({ children }: { children: React.ReactNode }) => (
     <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex space-x-4 py-4 px-1">{children}</div>
-      <ScrollBar orientation="horizontal" className="h-2 mt-2" />
+      <div className="flex space-x-3 md:space-x-4 py-2 px-0.5">{children}</div>
+      <ScrollBar orientation="horizontal" className="h-1.5 mt-2 opacity-50" />
     </ScrollArea>
   ),
 );
 
 const LoadingSkeleton = React.memo(() => (
-  <div className="space-y-8">
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <Skeleton className="w-8 h-8 rounded-lg" />
-        <div className="space-y-2">
-          <Skeleton className="h-6 w-32" />
-          <Skeleton className="h-4 w-48" />
+  <div className="space-y-8 md:space-y-12">
+    {Array.from({ length: 3 }).map((_, sectionIndex) => (
+      <div key={sectionIndex} className="space-y-3 md:space-y-4">
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-8 h-8 md:w-10 md:h-10 rounded-lg" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 md:h-5 w-24 md:w-32" />
+            <Skeleton className="h-3 md:h-4 w-32 md:w-48" />
+          </div>
         </div>
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex space-x-3 md:space-x-4 py-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton
+                key={i}
+                className="min-w-[140px] md:min-w-[180px] h-[180px] md:h-[240px] rounded-xl flex-shrink-0"
+              />
+            ))}
+          </div>
+        </ScrollArea>
       </div>
-      <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex space-x-4 pb-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="min-w-[180px] h-[240px] rounded-xl" />
-          ))}
-        </div>
-      </ScrollArea>
-    </div>
+    ))}
   </div>
 ));
 
 const ErrorState = React.memo(
   ({ error, onRetry }: { error: string | null; onRetry: () => void }) => (
-    <Card className="flex flex-col items-center justify-center min-h-[60vh] p-12 mx-4 md:mx-6 bg-card/80 backdrop-blur-sm border-border/50">
-      <div className="flex items-center justify-center w-20 h-20 rounded-full bg-destructive/10 mb-6">
-        <Music2 className="w-10 h-10 text-destructive" />
+    <Card className="flex flex-col items-center justify-center min-h-[50vh] p-6 md:p-12 mx-4 md:mx-6 bg-card/50 backdrop-blur-sm border-border/20">
+      <div className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-destructive/10 mb-4 md:mb-6">
+        <Music2 className="w-8 h-8 md:w-10 md:h-10 text-destructive" />
       </div>
-      <h3 className="text-xl font-semibold text-foreground mb-2">
+      <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2">
         Something went wrong
       </h3>
-      <p className="text-destructive text-center font-medium mb-2">{error}</p>
-      <p className="text-sm text-muted-foreground text-center mb-8 max-w-md">
+      <p className="text-sm text-destructive text-center font-medium mb-2">
+        {error}
+      </p>
+      <p className="text-xs md:text-sm text-muted-foreground text-center mb-6 md:mb-8 max-w-md">
         We're having trouble loading your music. Please check your connection
         and try again.
       </p>
       <Button
         onClick={onRetry}
         variant="default"
-        size="lg"
-        className="gap-2 min-w-[140px]"
+        size="sm"
+        className="gap-2 min-w-[120px] md:min-w-[140px]"
       >
         <Loader2 className="w-4 h-4 animate-spin" />
         Try Again
@@ -129,6 +139,19 @@ const ErrorState = React.memo(
     </Card>
   ),
 );
+
+const WelcomeHeader = React.memo(() => (
+  <div className="mb-8 md:mb-12">
+    <div className="space-y-1">
+      <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
+        Welcome back, Pankaj
+      </h1>
+      <p className="text-sm md:text-base text-muted-foreground">
+        Discover your music
+      </p>
+    </div>
+  </div>
+));
 
 const HomePage = () => {
   const { data: homePageData, isLoading, error, refetch } = useHomePageMusic();
@@ -140,8 +163,8 @@ const HomePage = () => {
 
   if (isLoading || recentLoading) {
     return (
-      <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-        <div className="px-4 md:px-6 pt-8 pb-24">
+      <div className="relative min-h-screen bg-background">
+        <div className="px-4 md:px-6 pt-4 md:pt-8 pb-20 md:pb-24">
           <LoadingSkeleton />
         </div>
       </div>
@@ -150,8 +173,8 @@ const HomePage = () => {
 
   if (error) {
     return (
-      <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-        <div className="pt-8 pb-24">
+      <div className="relative min-h-screen bg-background">
+        <div className="pt-4 md:pt-8 pb-20 md:pb-24">
           <ErrorState error={error.message} onRetry={refetch} />
         </div>
       </div>
@@ -164,18 +187,12 @@ const HomePage = () => {
   const hasMostlyListened = (recentData?.songs?.length ?? 0) > 0;
 
   return (
-    <div className="relative pt-6 pb-24">
-      <div className="mb-12 space-y-4">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">
-            <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Welcome back, Pankaj
-            </span>
-          </h1>
-        </div>
-      </div>
+    <div className="relative pt-4 md:pt-6 pb-20 md:pb-24">
+      <OfflineIndicator />
 
-      <div className="space-y-16">
+      <WelcomeHeader />
+
+      <div className="space-y-8 md:space-y-12">
         {hasRecentlyPlayed && (
           <LazySection
             title="Recently Played"

@@ -5,7 +5,7 @@ export interface Album {
   id: string;
   name: string;
   subtitle?: string;
-  type: string;
+  type: Type;
   url: string;
   image: Array<{ quality: string; link: string }>;
   language: string;
@@ -46,7 +46,7 @@ export interface Playlist {
   id: string;
   name: string;
   subtitle?: string;
-  type: string;
+  type: Type;
   url: string;
   image: Array<{ quality: string; link: string }>;
   language: string;
@@ -61,7 +61,7 @@ export interface Chart {
   id: string;
   name: string;
   subtitle?: string;
-  type: string;
+  type: Type;
   url: string;
   image: Array<{ quality: string; link: string }>;
   language: string;
@@ -133,6 +133,19 @@ export interface AlbumDetails {
   songs: Song[];
 }
 
+export interface ArtistDetails {
+  id: string;
+  name: string;
+  header_desc: string;
+  list_count: number;
+  follower_count: number;
+  image: Array<{ quality: string; link: string }>;
+  top_songs: Array<Song>;
+  top_albums: Array<Album>;
+  dedicated_artist_playlist: Array<Playlist>;
+  similar_artists: Array<Artist>;
+}
+
 export interface MusicHistoryParams {
   page: number;
   limit: number;
@@ -157,7 +170,7 @@ export interface AudioState {
 }
 
 export interface PlaybackState {
-  currentSong: Song | null;
+  isPlaying: boolean;
   queue: Song[];
   currentIndex: number;
   shuffle: boolean;
@@ -183,3 +196,28 @@ export interface PlayerConfig {
   gaplessPlayback: boolean;
   crossfade: number; // in milliseconds
 }
+
+export type Type =
+  | "artist"
+  | "album"
+  | "playlist"
+  | "radio"
+  | "radio_station"
+  | "song"
+  | "channel"
+  | "mix"
+  | "show"
+  | "episode"
+  | "season"
+  | "label";
+
+export type MegaMenu = {
+  top_artists: MegaMenuItem[];
+  top_playlists: MegaMenuItem[];
+  new_releases: MegaMenuItem[];
+};
+
+type MegaMenuItem = {
+  name: string;
+  url: string;
+};

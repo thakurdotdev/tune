@@ -122,9 +122,6 @@ importers:
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.1.0)
-      howler:
-        specifier: ^2.2.4
-        version: 2.2.4
       input-otp:
         specifier: ^1.4.2
         version: 1.4.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -155,6 +152,9 @@ importers:
       react-resizable-panels:
         specifier: ^3.0.4
         version: 3.0.4(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react-use-audio-player:
+        specifier: ^4.0.2
+        version: 4.0.2(react@19.1.0)
       recharts:
         specifier: 2.15.4
         version: 2.15.4(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -1673,6 +1673,11 @@ packages:
     peerDependencies:
       react: '>=16.6.0'
       react-dom: '>=16.6.0'
+
+  react-use-audio-player@4.0.2:
+    resolution: {integrity: sha512-qOgcQUAcRJ6skFeAFMPaAv1ZTXQG3zHBHjvHaaTZkGMlAqga9xiVJ826CbtxTXRsqrxexZ61puzeaPhDrJR6SQ==}
+    peerDependencies:
+      react: '>=18.0.0'
 
   react@19.1.0:
     resolution: {integrity: sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==}
@@ -3216,6 +3221,11 @@ snapshots:
       prop-types: 15.8.1
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
+
+  react-use-audio-player@4.0.2(react@19.1.0):
+    dependencies:
+      howler: 2.2.4
+      react: 19.1.0
 
   react@19.1.0: {}
 

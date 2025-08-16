@@ -1,13 +1,16 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SheetTitle } from "@/components/ui/sheet";
 import { DEFAULT_IMAGE } from "@/constants";
-import { useCurrentSong } from "@/stores/playbackStore";
+import { useCurrentIndex, useQueue } from "@/stores/playbackStore";
 import { Music } from "lucide-react";
 import { memo, useMemo } from "react";
-import { MusicControls, ProgressBarMusic } from "../common";
+import { MusicControls, ProgressBarMusic, VolumeControl } from "../common";
 
 const NowPlayingTab = memo(() => {
-  const currentSong = useCurrentSong();
+  const queue = useQueue();
+  const currentIndex = useCurrentIndex();
+
+  const currentSong = queue[currentIndex] || null;
 
   const songImage = useMemo(
     () => currentSong?.image?.[2]?.link || DEFAULT_IMAGE,
@@ -63,13 +66,12 @@ const NowPlayingTab = memo(() => {
         </div>
       </div>
 
-      <div className="px-3">
-        <ProgressBarMusic isTimeVisible={true} />
-      </div>
+      <ProgressBarMusic isTimeVisible={true} />
 
       <div className="space-y-6 relative z-10">
         <div className="flex justify-center">
           <MusicControls size="large" />
+          <VolumeControl />
         </div>
       </div>
     </div>

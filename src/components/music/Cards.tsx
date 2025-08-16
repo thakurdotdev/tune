@@ -9,36 +9,35 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, getHref } from "@/lib/utils";
 import { useAddToHistory } from "@/queries/useMusic";
-import { useAudioManager, useIsPlaying } from "@/stores/audioStore";
 import {
-  useCurrentSong,
+  useCurrentIndex,
+  useIsPlaying,
   usePlaybackStore,
   useQueue,
 } from "@/stores/playbackStore";
 import { Album, Artist, Playlist } from "@/types/music";
 import { Song } from "@/types/song";
-import {
-  Disc3,
-  Heart,
-  ListMusic,
-  Loader2,
-  MoreVertical,
-  Play,
-  User,
-} from "lucide-react";
+import { Heart, MoreVertical, Play, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo } from "react";
+import { useAudioPlayerContext } from "react-use-audio-player";
 import { toast } from "sonner";
 import "./music.css";
 
-export const AudioWave = memo(({ width = "2px" }: { width?: string }) => (
+const getImageUrl = (song: Song) => {
+  return Array.isArray(song.image)
+    ? song.image?.[2].link || song.image?.[1].link || song.image?.[0].link
+    : song.image;
+};
+
+export const AudioWave = memo(() => (
   <div className="flex items-center gap-[2px]">
     {[...Array(4)].map((_, i) => (
       <div
         key={i}
-        className={`w-[${width}] bg-background rounded-full animate-pulse`}
+        className={`w-[2px] bg-background rounded-full animate-pulse`}
         style={{
           animationDelay: `${i * 0.15}s`,
           height: `${8 + Math.sin(i) * 4}px`,
@@ -50,14 +49,16 @@ export const AudioWave = memo(({ width = "2px" }: { width?: string }) => (
 ));
 
 export const SongCard = memo(({ song }: { song: Song }) => {
-  const currentSong = useCurrentSong();
+  const isPlayerInit = useIsPlaying();
+  const setIsPlayerInit = usePlaybackStore((state) => state.setIsPlaying);
+  const { togglePlayPause, isPlaying } = useAudioPlayerContext();
   const queue = useQueue();
-  const isPlaying = useIsPlaying();
-  const audioManager = useAudioManager();
-  const setCurrentSong = usePlaybackStore((state) => state.setCurrentSong);
-  const addToQueueAction = usePlaybackStore((state) => state.addToQueue);
+  const currentIndex = useCurrentIndex();
+  const setCurrentIndex = usePlaybackStore((state) => state.setCurrentIndex);
+  const setQueue = usePlaybackStore((state) => state.setQueue);
   const addToHistory = useAddToHistory();
-  const [loading, setLoading] = useState(false);
+
+  const currentSong = queue[currentIndex] || null;
 
   if (!song?.id || !song?.image?.[2]) return null;
 
@@ -71,31 +72,18 @@ export const SongCard = memo(({ song }: { song: Song }) => {
       .join(", ") || song?.name;
 
   const handlePlayClick = async () => {
-    try {
-      setLoading(true);
-      if (isCurrentSong) {
-        if (isPlaying) {
-          audioManager?.pause();
-        } else {
-          audioManager?.play();
-        }
-        return;
-      }
-
-      if (song?.download_url) {
-        setCurrentSong(song);
-        if (!isInQueue) {
-          addToQueueAction(song);
-        }
-        addToHistory.mutate({
-          songData: song,
-          playedTime: 10,
-        });
-      }
-    } catch (err: any) {
-      console.error("Error fetching song:", err);
-    } finally {
-      setLoading(false);
+    if (isCurrentSong) {
+      togglePlayPause();
+    } else if (!isInQueue) {
+      setQueue([song]);
+      setIsPlayerInit(true);
+      addToHistory.mutate({
+        songData: song,
+        playedTime: 10,
+      });
+    } else {
+      setCurrentIndex(queue.findIndex((item) => item.id === song.id));
+      setIsPlayerInit(true);
     }
   };
 
@@ -112,11 +100,7 @@ export const SongCard = memo(({ song }: { song: Song }) => {
         <div className="relative">
           <div className="relative aspect-square overflow-hidden">
             <LazyImage
-              src={
-                Array.isArray(song.image)
-                  ? song.image?.[1].link || song.image?.[2].link
-                  : song.image
-              }
+              src={getImageUrl(song)}
               alt={name}
               height={170}
               width={176}
@@ -125,29 +109,23 @@ export const SongCard = memo(({ song }: { song: Song }) => {
 
             {/* Bottom-right Play Button Overlay */}
             <div className="absolute bottom-2 right-2 transform translate-x-8 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 ease-out">
-              {loading ? (
-                <div className="w-10 h-10 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg">
-                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                </div>
-              ) : isCurrentSong && isPlaying ? (
-                <div className="w-10 h-10 bg-primary/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg animate-pulse">
+              <Button
+                size="sm"
+                onClick={handlePlayClick}
+                className="w-10 h-10 rounded-full bg-primary/90 hover:bg-primary hover:scale-110 transition-all duration-200 shadow-lg"
+              >
+                {isCurrentSong && isPlaying ? (
                   <AudioWave />
-                </div>
-              ) : (
-                <Button
-                  size="sm"
-                  onClick={handlePlayClick}
-                  className="w-10 h-10 rounded-full bg-primary/90 hover:bg-primary hover:scale-110 transition-all duration-200 shadow-lg"
-                >
+                ) : (
                   <Play className="w-4 h-4 text-primary-foreground fill-primary-foreground ml-0.5" />
-                </Button>
-              )}
+                )}
+              </Button>
             </div>
           </div>
         </div>
 
         {/* Song Information */}
-        <div className="p-4">
+        <div className="py-4 px-2">
           <div className="space-y-1">
             <h3
               className={cn(
@@ -171,19 +149,22 @@ export const SongCard = memo(({ song }: { song: Song }) => {
 
 export const FullSongCard = memo(({ song }: { song: Song }) => {
   const router = useRouter();
-  const currentSong = useCurrentSong();
+  const isPlayerInit = useIsPlaying();
+  const setIsPlayerInit = usePlaybackStore((state) => state.setIsPlaying);
+  const { togglePlayPause } = useAudioPlayerContext();
   const queue = useQueue();
-  const isPlaying = useIsPlaying();
-
-  const audioManager = useAudioManager();
-  const setCurrentSong = usePlaybackStore((state) => state.setCurrentSong);
-  const addToQueueAction = usePlaybackStore((state) => state.addToQueue);
+  const currentIndex = useCurrentIndex();
+  const setCurrentIndex = usePlaybackStore((state) => state.setCurrentIndex);
+  const setQueue = usePlaybackStore((state) => state.setQueue);
+  const addToQueue = usePlaybackStore((state) => state.addToQueue);
+  const removeFromQueue = usePlaybackStore((state) => state.removeFromQueue);
   const addToHistory = useAddToHistory();
+
+  const currentSong = queue[currentIndex] || null;
 
   if (!song?.id || !song?.image?.[2]) return null;
 
   const isCurrentSong = currentSong?.id === song.id;
-  const isInQueue = queue.some((item: Song) => item.id === song.id);
   const name = song.name || song.title || "";
   const artistName =
     song?.artist_map?.artists
@@ -192,50 +173,48 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
       .join(", ") || song?.name;
 
   const handlePlayClick = async () => {
-    try {
-      if (isCurrentSong) {
-        if (isPlaying) {
-          audioManager?.pause();
-        } else {
-          audioManager?.play();
-        }
-        return;
-      }
-
-      if (song?.download_url) {
-        setCurrentSong(song);
-        if (!isInQueue) {
-          addToQueueAction(song);
-        }
-        addToHistory.mutate({
-          songData: song,
-          playedTime: 10,
-        });
-      }
-    } catch (err: any) {
-      console.error("Error fetching song:", err);
+    if (isPlayerInit && isCurrentSong) {
+      togglePlayPause();
+    } else if (!isInQueue) {
+      setQueue([song]);
+      setIsPlayerInit(true);
+      addToHistory.mutate({
+        songData: song,
+        playedTime: 10,
+      });
+    } else {
+      setCurrentIndex(queue.findIndex((item) => item.id === song.id));
+      setIsPlayerInit(true);
+      addToHistory.mutate({
+        songData: song,
+        playedTime: 10,
+      });
     }
   };
+
+  if (!song?.id || !song?.image?.[2]) return null;
+
+  const isInQueue = queue.some((item: Song) => item.id === song.id);
 
   const handleAddToQueue = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!isCurrentSong) {
-        addToQueueAction(song);
-        toast.success(`Added ${name} to queue`);
-      }
+      addToQueue(song);
+      toast.success(`Added ${name} to queue`);
     },
-    [song, name, isCurrentSong, addToQueueAction],
+    [song, name, isCurrentSong],
   );
 
   const handleRemoveFromQueue = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      const updatedQueue = queue.filter((item: Song) => item.id !== song.id);
-      addToQueueAction(updatedQueue);
+      const currentIndex = queue.findIndex((item) => item.id === song.id);
+      if (currentIndex !== -1) {
+        removeFromQueue(currentIndex);
+      }
       toast.success(`Removed ${name} from queue`);
     },
-    [queue, song.id, name, addToQueueAction],
+    [queue, song.id, name],
   );
 
   return (
@@ -252,15 +231,15 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
           onClick={handlePlayClick}
         >
           <LazyImage
-            src={Array.isArray(song.image) ? song.image?.[1].link : song.image}
+            src={getImageUrl(song)}
             alt={name}
             height={56}
             width={56}
             className="w-full h-full object-cover"
           />
-          {isCurrentSong && isPlaying && (
+          {isCurrentSong && isPlayerInit && (
             <div className="absolute left-0 top-0 w-14 h-14 bg-primary/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
-              <AudioWave width="2px" />
+              <AudioWave />
             </div>
           )}
         </div>
@@ -352,8 +331,8 @@ export const ArtistCard = memo(({ artist }: { artist: Artist }) => {
   );
 
   const handleClick = useCallback(() => {
-    router.push(`/music/artist/${artist.id}`);
-  }, [artist.id, router]);
+    router.push(getHref(artist.url, "artist"));
+  }, [artist.url, router]);
 
   return (
     <div
@@ -408,8 +387,8 @@ export const AlbumCard = memo(({ album }: { album: Album }) => {
   const name = useMemo(() => album.name, [album]);
 
   const handleClick = useCallback(
-    () => router.push(`/album/${album.album_id ?? album?.id}`),
-    [album, router],
+    () => router.push(getHref(album.url, "album")),
+    [album.url, router],
   );
 
   return (
@@ -485,8 +464,8 @@ export const PlaylistCard = memo(({ playlist }: { playlist: Playlist }) => {
   );
 
   const handleClick = useCallback(
-    () => router.push(`/playlist/${playlist.id}`),
-    [playlist.id, router],
+    () => router.push(getHref(playlist.url, playlist.type)),
+    [playlist.url, playlist.type, router],
   );
 
   return (
@@ -533,7 +512,7 @@ export const PlaylistCard = memo(({ playlist }: { playlist: Playlist }) => {
         </div>
 
         {/* Playlist Information */}
-        <div className="p-4">
+        <div className="py-4 px-2">
           <div className="space-y-1">
             <h3 className="text-base font-semibold line-clamp-1 transition-colors duration-300 text-foreground group-hover:text-primary">
               {playlist.name}

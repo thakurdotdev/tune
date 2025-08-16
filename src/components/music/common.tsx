@@ -1,17 +1,11 @@
-import usePlayerControls from "@/hooks/usePlayerControls";
+import { cn } from "@/lib/utils";
 import {
-  useAudioManager,
-  useAudioStore,
-  useCurrentTime,
-  useDuration,
+  useCurrentIndex,
   useIsPlaying,
-  useSetVolume,
-  useVolume,
-} from "@/stores/audioStore";
-import { memo, useCallback, useState } from "react";
-import { Slider } from "../ui/slider";
+  usePlaybackStore,
+  useQueue,
+} from "@/stores/playbackStore";
 import { formatDuration } from "@/utils/formatDuration";
-import { Button } from "../ui/button";
 import {
   PauseIcon,
   PlayIcon,
@@ -20,28 +14,69 @@ import {
   Volume2Icon,
   VolumeXIcon,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useAudioPlayerContext } from "react-use-audio-player";
+import { Button } from "../ui/button";
+import { Slider } from "../ui/slider";
 
 export const MusicControls = memo(
   ({ size = "default" }: { size?: "default" | "large" }) => {
-    const isPlaying = useIsPlaying();
+    const isPlayerInit = useIsPlaying();
+    const { togglePlayPause, isPlaying } = useAudioPlayerContext();
+    const queue = useQueue();
+    const currentIndex = useCurrentIndex();
+    const setIsPlayerInit = usePlaybackStore((state) => state.setIsPlaying);
+    const setCurrentIndex = usePlaybackStore((state) => state.setCurrentIndex);
+    const isShuffle = usePlaybackStore((state) => state.shuffle);
+    const repeat = usePlaybackStore((state) => state.repeat);
 
-    const audioManager = useAudioManager();
-    const { playNext, playPrevious } = usePlayerControls();
+    function skipToNext() {
+      if (!isPlayerInit) setIsPlayerInit(true);
 
-    const handlePlayPause = () => {
-      if (isPlaying) {
-        audioManager?.pause();
+      let index = currentIndex;
+
+      if (isShuffle) {
+        index = Math.floor(Math.random() * queue.length);
       } else {
-        audioManager?.play();
+        if (currentIndex < queue.length - 1) {
+          index = currentIndex + 1;
+        } else {
+          if (repeat === "all") {
+            index = 0;
+          }
+        }
       }
-    };
+      setCurrentIndex(index);
+    }
+
+    function skipToPrev() {
+      if (!isPlayerInit) setIsPlayerInit(true);
+
+      let index;
+
+      if (isShuffle) {
+        index = Math.floor(Math.random() * queue.length);
+      } else {
+        if (currentIndex > 0) {
+          index = currentIndex - 1;
+        } else {
+          if (repeat === "all") {
+            index = queue.length - 1;
+          } else {
+            index = currentIndex;
+          }
+        }
+      }
+
+      setCurrentIndex(index);
+    }
+
     return (
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
-          onClick={playPrevious}
+          onClick={skipToPrev}
           className={cn(
             "transition-all hover:scale-105",
             size === "large" ? "h-12 w-12" : "h-9 w-9",
@@ -52,7 +87,7 @@ export const MusicControls = memo(
         <Button
           variant="default"
           size="icon"
-          onClick={handlePlayPause}
+          onClick={togglePlayPause}
           className={cn(
             "transition-all hover:scale-105",
             size === "large" ? "h-14 w-14" : "h-10 w-10",
@@ -67,7 +102,7 @@ export const MusicControls = memo(
         <Button
           variant="ghost"
           size="icon"
-          onClick={playNext}
+          onClick={skipToNext}
           className={cn(
             "transition-all hover:scale-105",
             size === "large" ? "h-12 w-12" : "h-9 w-9",
@@ -84,8 +119,8 @@ export const MusicControls = memo(
 
 export const VolumeControl = memo(
   ({ showVolume = false }: { showVolume?: boolean }) => {
-    const setVolume = useSetVolume();
-    const volume = useVolume();
+    const { volume, setVolume } = useAudioPlayerContext();
+
     const [isMuted, setIsMuted] = useState(false);
     const toggleMute = useCallback(() => {
       setIsMuted((prev) => {
@@ -120,24 +155,53 @@ export const VolumeControl = memo(
 
 export const ProgressBarMusic = memo(
   ({ isTimeVisible = false }: { isTimeVisible?: boolean }) => {
-    const currentTime = useCurrentTime();
-    const duration = useDuration();
-    const { seek } = usePlayerControls() || {};
+    const frameRef = useRef<number>(0);
+
+    const [isDragging, setIsDragging] = useState<boolean>(false);
+    const { duration, getPosition, seek } = useAudioPlayerContext();
+    const [pos, setPos] = useState(0);
+
+    useEffect(() => {
+      if (isDragging) {
+        return;
+      }
+
+      const animate = () => {
+        setPos(getPosition());
+        frameRef.current = requestAnimationFrame(animate);
+      };
+
+      frameRef.current = window.requestAnimationFrame(animate);
+
+      return () => {
+        if (frameRef.current) {
+          cancelAnimationFrame(frameRef.current);
+        }
+      };
+    }, [getPosition, isDragging]);
 
     return (
       <div className="space-y-2">
         <Slider
-          value={[currentTime]}
+          onPointerDown={() => {
+            setIsDragging(true);
+          }}
+          onValueCommit={() => {
+            seek(pos);
+            setPos(getPosition());
+            setIsDragging(false);
+          }}
+          value={[pos]}
           min={0}
           max={duration}
           step={0.1}
-          onValueChange={([value]) => seek(value)}
+          onValueChange={([value]) => setPos(value)}
           className="h-1 cursor-pointer rounded-l-none"
         />
         {isTimeVisible && (
           <div className="flex justify-between">
             <p className="text-muted-foreground text-sm">
-              {formatDuration(currentTime)}
+              {formatDuration(pos)}
             </p>
             <p className="text-muted-foreground text-sm">
               {formatDuration(duration)}

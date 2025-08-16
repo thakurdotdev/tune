@@ -1,26 +1,25 @@
 import { SONG_URL } from "@/constants";
 import api from "@/lib/api";
-import {
+import type {
   MusicHistoryResponse,
   HomePageResponse,
   RecentMusicResponse,
   MusicHistoryParams,
   PlaylistDetails,
   AlbumDetails,
+  ArtistDetails,
+  MegaMenu,
 } from "@/types/music";
 import { Song } from "@/types/song";
 import { ensureHttpsForSongUrls } from "@/utils/getHttpsUrls";
 import axios from "axios";
 
 export const getHomePageMusic = async (): Promise<HomePageResponse> => {
-  const response = await axios.get(
-    `${SONG_URL}/modules?lang=${"hindi, bhojpuri"}`,
-    {
-      headers: {
-        "Cache-Control": "no-cache",
-      },
+  const response = await axios.get(`${SONG_URL}/modules?lang=${"hindi"}`, {
+    headers: {
+      "Cache-Control": "no-cache",
     },
-  );
+  });
 
   return response.data.data;
 };
@@ -57,13 +56,25 @@ export const getRelatedSongs = async (songId: string): Promise<Song[]> => {
 export const getPlaylistDetails = async (
   playlistId: string,
 ): Promise<PlaylistDetails> => {
-  const response = await axios.get(`${SONG_URL}/playlist?id=${playlistId}`);
+  const response = await axios.get(`${SONG_URL}/playlist?token=${playlistId}`);
   return response.data.data ?? {};
 };
 
 export const getAlbumDetails = async (
   albumId: string,
 ): Promise<AlbumDetails> => {
-  const response = await axios.get(`${SONG_URL}/album?id=${albumId}`);
+  const response = await axios.get(`${SONG_URL}/album?token=${albumId}`);
   return response.data.data ?? {};
+};
+
+export const getArtistDetails = async (
+  artistId: string,
+): Promise<ArtistDetails> => {
+  const response = await axios.get(`${SONG_URL}/artist?token=${artistId}`);
+  return response.data.data ?? {};
+};
+
+export const getMegaMenu = async (lang: string): Promise<MegaMenu> => {
+  const response = await axios.get(`${SONG_URL}/get/mega-menu?lang=${lang}`);
+  return response.data.data;
 };
