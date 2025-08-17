@@ -16,8 +16,13 @@ import {
   Users,
 } from "lucide-react";
 import React from "react";
-import { AlbumCard, ArtistCard, PlaylistCard, SongCard } from "./Cards";
-import { OfflineIndicator } from "../PWAControls";
+import {
+  AlbumCard,
+  ArtistCard,
+  FullSongCard,
+  PlaylistCard,
+  SongCard,
+} from "./Cards";
 
 const SectionHeader = React.memo(
   ({
@@ -33,20 +38,10 @@ const SectionHeader = React.memo(
   }) => {
     return (
       <div className={cn("flex items-start gap-3 mb-4", className)}>
-        {Icon && (
-          <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary/5 text-primary mt-1">
-            <Icon className="w-4 h-4 md:w-5 md:h-5" />
-          </div>
-        )}
         <div className="flex-1 min-w-0">
           <h2 className="text-lg md:text-xl font-semibold tracking-tight text-foreground leading-tight">
             {title}
           </h2>
-          {subtitle && (
-            <p className="text-xs md:text-sm text-muted-foreground mt-0.5 leading-relaxed">
-              {subtitle}
-            </p>
-          )}
         </div>
       </div>
     );
@@ -80,9 +75,22 @@ const ScrollableSection = React.memo(
   ({ children }: { children: React.ReactNode }) => (
     <ScrollArea className="w-full whitespace-nowrap">
       <div className="flex space-x-3 md:space-x-4 py-2 px-0.5">{children}</div>
-      <ScrollBar orientation="horizontal" className="h-1.5 mt-2 opacity-50" />
+      <ScrollBar
+        orientation="horizontal"
+        className="h-2 mt-3 opacity-50 cursor-pointer"
+      />
     </ScrollArea>
   ),
+);
+
+const GridSection = React.memo(
+  ({
+    children,
+    className,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+  }) => <div className={cn("grid gap-3 md:gap-4", className)}>{children}</div>,
 );
 
 const LoadingSkeleton = React.memo(() => (
@@ -188,8 +196,6 @@ const HomePage = () => {
 
   return (
     <div className="relative pt-4 md:pt-6 pb-20 md:pb-24">
-      <OfflineIndicator />
-
       <WelcomeHeader />
 
       <div className="space-y-8 md:space-y-12">
@@ -199,11 +205,64 @@ const HomePage = () => {
             subtitle="Pick up where you left off"
             icon={Clock}
           >
-            <ScrollableSection>
-              {(recentData?.recentlyPlayed ?? []).map((song) => (
-                <SongCard song={song} key={song.id} />
-              ))}
-            </ScrollableSection>
+            {/* Scrollable layout for recently played - 4 items on mobile, 8 items (4x2) on desktop per page */}
+            <ScrollArea className="w-full">
+              <div className="flex space-x-6 md:space-x-8 pb-4">
+                {/* Create pages of items - Mobile: 4 items per page, Desktop: 8 items per page */}
+                {Array.from({
+                  length: Math.ceil(
+                    (recentData?.recentlyPlayed?.length ?? 0) / 4,
+                  ),
+                }).map((_, pageIndex) => {
+                  const mobileStartIndex = pageIndex * 4;
+                  const mobileEndIndex = mobileStartIndex + 4;
+                  const mobilePageItems = (
+                    recentData?.recentlyPlayed ?? []
+                  ).slice(mobileStartIndex, mobileEndIndex);
+
+                  return (
+                    <div
+                      key={`mobile-${pageIndex}`}
+                      className="md:hidden flex-shrink-0 w-full grid grid-cols-1 gap-3"
+                    >
+                      {mobilePageItems.map((song) => (
+                        <FullSongCard song={song} key={song.id} />
+                      ))}
+                    </div>
+                  );
+                })}
+
+                {/* Desktop pages - 8 items (4x2) per page */}
+                {Array.from({
+                  length: Math.ceil(
+                    (recentData?.recentlyPlayed?.length ?? 0) / 8,
+                  ),
+                }).map((_, pageIndex) => {
+                  const desktopStartIndex = pageIndex * 8;
+                  const desktopEndIndex = desktopStartIndex + 8;
+                  const desktopPageItems = (
+                    recentData?.recentlyPlayed ?? []
+                  ).slice(desktopStartIndex, desktopEndIndex);
+
+                  return (
+                    <div
+                      key={`desktop-${pageIndex}`}
+                      className="hidden md:block flex-shrink-0 w-full"
+                    >
+                      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4">
+                        {desktopPageItems.map((song) => (
+                          <FullSongCard song={song} key={song.id} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <ScrollBar
+                orientation="horizontal"
+                className="h-2 mt-3 opacity-50 cursor-pointer"
+              />
+            </ScrollArea>
           </LazySection>
         )}
 
@@ -297,4 +356,4 @@ const HomePage = () => {
   );
 };
 
-export default React.memo(HomePage);
+export default HomePage;

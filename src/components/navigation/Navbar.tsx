@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { useMegaMenu } from "@/queries/useMusic";
 import { useUserStore } from "@/stores/userStore";
 import {
   Compass,
@@ -33,10 +33,8 @@ import { useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import LazyImage from "../LazyImage";
-import { useMegaMenu } from "@/queries/useMusic";
-import { MainNav } from "./main-nav";
-import { PWAInstallButton } from "../PWAControls";
 import { LanguagePicker } from "./language-picker";
+import { MainNav } from "./main-nav";
 
 const navItems = [
   { icon: Home, label: "Home", href: "/", isActive: true },
@@ -51,7 +49,6 @@ const navItems = [
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
-  const pathname = usePathname();
   const user = useUserStore((state) => state.user);
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -116,10 +113,6 @@ const Navbar = () => {
 
         {/* Right Section */}
         <div className="flex items-center space-x-3">
-          {/* PWA Install Button */}
-          <div className="hidden sm:block">
-            <PWAInstallButton />
-          </div>
           <LanguagePicker />
 
           {/* Theme Toggle */}

@@ -30,6 +30,7 @@ export const useRecentMusic = () => {
     queryKey: ["recentMusic"],
     queryFn: () => getRecentMusic(),
     enabled: !!user, // Only fetch if user is logged ins
+    refetchOnMount: "always", // Always refetch when the component mounts
   });
 };
 

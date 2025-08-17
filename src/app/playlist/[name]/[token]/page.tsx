@@ -1,8 +1,8 @@
 "use client";
 
-import { SongCard } from "@/components/music/Cards";
+import { FullSongCard } from "@/components/music/Cards";
+import DetailPageSkeleton from "@/components/DetailPageSkeleton";
 import { usePlaylistDetails } from "@/queries/useMusic";
-import { Loader2 } from "lucide-react";
 import { use } from "react";
 
 const Playlist = ({ params }: { params: Promise<{ token: string }> }) => {
@@ -10,12 +10,9 @@ const Playlist = ({ params }: { params: Promise<{ token: string }> }) => {
 
   const { data: playlistData, isPending } = usePlaylistDetails(token);
 
-  if (isPending)
-    return (
-      <>
-        <Loader2 className="animate-spin" />
-      </>
-    );
+  if (isPending) {
+    return <DetailPageSkeleton />;
+  }
 
   const bgUrl = playlistData?.image;
 
@@ -60,9 +57,9 @@ const Playlist = ({ params }: { params: Promise<{ token: string }> }) => {
       </div>
 
       {/** Playlist Songs */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] w-full mt-6 gap-4">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] w-full mt-6 gap-4">
         {(playlistData?.songs ?? []).map((song) => (
-          <SongCard key={song.id} song={song} />
+          <FullSongCard key={song.id} song={song} />
         ))}
       </div>
     </div>
