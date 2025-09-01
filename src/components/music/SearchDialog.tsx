@@ -34,13 +34,13 @@ const SearchDialog = ({
         showCloseButton={false}
       >
         {/* Search Header */}
-        <div className="sticky top-0 z-10 bg-background border-b p-4">
+        <div className="sticky top-8 md:top-0 z-10 bg-background border-b p-4">
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Search for songs, artists, albums..."
-                className="pl-10 pr-10 bg-muted/50 border-0 rounded-full focus-visible:ring-2 focus-visible:ring-primary/20"
+                className="pl-10 pr-10 rounded-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
@@ -70,7 +70,7 @@ const SearchDialog = ({
 
         {/* Scrollable Content */}
         <ScrollArea className="h-[calc(80vh-80px)] max-sm:h-[calc(100vh-80px)]">
-          <div className="p-4">
+          <div className="p-5 max-md:pb-10">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-40">
                 <Loader2 className="w-6 h-6 animate-spin text-primary mb-2" />
@@ -88,7 +88,7 @@ const SearchDialog = ({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2">
                   {searchResults.map((song) => (
                     <FullSongCard key={song.id} song={song} />
                   ))}
@@ -112,8 +112,7 @@ const SearchDialog = ({
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Search for music</h3>
                 <p className="text-sm text-muted-foreground max-w-md">
-                  Find your favorite songs, artists, and albums. Start typing
-                  above to get started.
+                  Find your favorite songs. Start typing above to get started.
                 </p>
               </div>
             )}

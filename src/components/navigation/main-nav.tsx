@@ -33,7 +33,7 @@ export function MainNav({ className, megaMenu }: MainNavProps) {
 
           <NavigationMenuContent className="p-6 md:w-[400px] lg:w-[1000px]">
             <h2 className="font-heading text-2xl drop-shadow-md dark:bg-gradient-to-br dark:from-neutral-200 dark:to-neutral-600 dark:bg-clip-text dark:text-transparent sm:text-2xl md:text-4xl">
-              What&apos;s Hot on Infinitunes
+              What&apos;s Hot on Tune
             </h2>
 
             <Separator className="my-2" />

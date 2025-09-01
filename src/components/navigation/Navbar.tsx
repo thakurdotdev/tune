@@ -67,10 +67,10 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between">
         {/* Logo Section */}
-        <div className="flex items-center space-x-8">
+        <div className="flex items-center md:space-x-8">
           <div className="flex items-center space-x-3">
             <div
-              className="flex items-center justify-center w-10 h-10 rounded-none shadow-lg"
+              className="flex items-center justify-center w-10 h-10 rounded-full shadow-lg"
               onClick={() => router.push("/")}
             >
               <LazyImage
@@ -78,7 +78,7 @@ const Navbar = () => {
                 alt="Logo"
                 height={40}
                 width={40}
-                className="w-full h-full object-cover rounded-none"
+                className="w-full h-full object-cover rounded-full cursor-pointer"
               />
             </div>
           </div>
