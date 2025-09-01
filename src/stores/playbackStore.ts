@@ -1,5 +1,6 @@
 import type { PlaybackState } from "@/types/music";
 import type { Song } from "@/types/song";
+import { getRelatedSongs } from "@/api/music";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { persist } from "zustand/middleware";
@@ -21,6 +22,10 @@ interface PlaybackStore extends PlaybackState {
   moveQueueItem: (fromIndex: number, toIndex: number) => void;
   shuffleQueue: () => void;
   getShuffledQueue: () => Song[];
+
+  // Related songs management
+  loadRelatedSongsIfNeeded: () => Promise<void>;
+  _lastRelatedSongId: string | null;
 
   // Hydration helpers
   _hasHydrated: boolean;
@@ -46,6 +51,7 @@ export const usePlaybackStore = create<PlaybackStore>()(
       shuffle: false,
       repeat: "none",
       _hasHydrated: false,
+      _lastRelatedSongId: null,
 
       // Actions
       setIsPlaying: (isPlaying) => set({ isPlaying }),
@@ -53,6 +59,7 @@ export const usePlaybackStore = create<PlaybackStore>()(
 
       setQueue: (songs) => {
         set({ queue: songs, currentIndex: songs.length > 0 ? 0 : -1 });
+        get().loadRelatedSongsIfNeeded();
       },
 
       addToQueue: (songs) => {
@@ -73,6 +80,10 @@ export const usePlaybackStore = create<PlaybackStore>()(
             queue: updatedQueue,
             currentIndex: newIndex,
           });
+          console.log("New songs added to queue:", newSongs);
+
+          // Check if we need to load related songs after adding to the queue
+          get().loadRelatedSongsIfNeeded();
         }
       },
 
@@ -105,12 +116,16 @@ export const usePlaybackStore = create<PlaybackStore>()(
         });
       },
 
-      clearQueue: () => set({ queue: [], currentIndex: -1 }),
+      clearQueue: () => {
+        set({ queue: [], currentIndex: -1 });
+      },
 
       setCurrentIndex: (index) => {
         const queue = get().queue;
         if (index >= 0 && index < queue.length) {
           set({ currentIndex: index });
+          // Check if we need to load related songs after setting the index
+          get().loadRelatedSongsIfNeeded();
         }
       },
 
@@ -139,6 +154,8 @@ export const usePlaybackStore = create<PlaybackStore>()(
 
         // Update the current index to the next song for proper state tracking
         set({ currentIndex: nextIndex });
+        // Check if we need to load related songs after setting the index
+        get().loadRelatedSongsIfNeeded();
         return queue[nextIndex] || null;
       },
 
@@ -222,6 +239,29 @@ export const usePlaybackStore = create<PlaybackStore>()(
       getShuffledQueue: () => {
         const { queue } = get();
         return shuffleArray(queue);
+      },
+
+      loadRelatedSongsIfNeeded: async () => {
+        const { queue, currentIndex, _lastRelatedSongId } = get();
+        const currentSong = queue[currentIndex];
+
+        const shouldLoadRelated = currentIndex === queue.length - 1;
+
+        if (
+          shouldLoadRelated &&
+          currentSong?.id &&
+          currentSong.id !== _lastRelatedSongId
+        ) {
+          try {
+            set({ _lastRelatedSongId: currentSong.id });
+            const relatedSongs = await getRelatedSongs(currentSong.id);
+            if (relatedSongs?.length) {
+              get().addToQueue(relatedSongs);
+            }
+          } catch (error) {
+            console.error("Failed to load related songs:", error);
+          }
+        }
       },
     })),
     {

@@ -95,7 +95,7 @@ export const SongCard = memo(({ song }: { song: Song }) => {
       {/* Main Card */}
       <div
         className={cn(
-          "relative rounded-xl overflow-hidden hover:bg-accent/50  p-3",
+          "relative rounded-xl overflow-hidden hover:bg-accent/50 p-3",
           isCurrentSong && "bg-accent border border-primary/20",
         )}
       >
@@ -113,7 +113,7 @@ export const SongCard = memo(({ song }: { song: Song }) => {
             {/* Play Button - Always visible on mobile, hover on desktop */}
             <div
               className={cn(
-                "absolute bottom-2 right-2 transition-all duration-300 ease-out",
+                "absolute bottom-2 right-2",
                 isCurrentSong && isPlaying
                   ? "" // Always visible when current song is playing
                   : "sm:transform sm:translate-x-8 sm:opacity-0 sm:group-hover:translate-x-0 sm:group-hover:opacity-100",
@@ -123,7 +123,7 @@ export const SongCard = memo(({ song }: { song: Song }) => {
                 size="sm"
                 onClick={handlePlayClick}
                 className={cn(
-                  "w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-200 shadow-md bg-primary/10 backdrop-blur-sm",
+                  "w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-md bg-primary/10 backdrop-blur-sm",
                 )}
               >
                 {isCurrentSong && isPlaying ? (
@@ -343,7 +343,7 @@ export const ArtistCard = memo(({ artist }: { artist: Artist }) => {
   return (
     <Link
       key={artist.id}
-      href={getHref(artist.url, "artist")}
+      href={getHref(artist.url || "", "artist")}
       className="group cursor-pointer w-full max-w-[160px] sm:w-40"
     >
       {/* Main Card */}
@@ -386,7 +386,7 @@ export const AlbumCard = memo(({ album }: { album: Album }) => {
   return (
     <Link
       key={album.id}
-      href={getHref(album.url, "album")}
+      href={getHref(album.url || "", "album")}
       className="group cursor-pointer w-full max-w-[160px] sm:w-40"
     >
       <div className="relative rounded-xl overflow-hidden hover:bg-accent/50  p-3">
@@ -456,7 +456,7 @@ export const PlaylistCard = memo(({ playlist }: { playlist: Playlist }) => {
   return (
     <Link
       key={playlist.id}
-      href={getHref(playlist.url, playlist.type)}
+      href={getHref(playlist.url || "", playlist.type)}
       className="group cursor-pointer w-full max-w-[160px] sm:w-40"
     >
       {/* Main Card */}

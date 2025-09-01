@@ -74,7 +74,7 @@ const LazySection = React.memo(
 const ScrollableSection = React.memo(
   ({ children }: { children: React.ReactNode }) => (
     <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex space-x-3 md:space-x-4 py-2 px-0.5">{children}</div>
+      <div className="flex space-x-3 py-2 px-0.5">{children}</div>
       <ScrollBar
         orientation="horizontal"
         className="h-2 mt-3 opacity-50 cursor-pointer"
@@ -249,7 +249,7 @@ const HomePage = () => {
                       key={`desktop-${pageIndex}`}
                       className="hidden md:block flex-shrink-0 w-full"
                     >
-                      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4">
+                      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
                         {desktopPageItems.map((song) => (
                           <FullSongCard song={song} key={song.id} />
                         ))}

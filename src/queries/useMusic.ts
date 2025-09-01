@@ -10,6 +10,7 @@ import {
   getPlaylistDetails,
   getRecentMusic,
   getRelatedSongs,
+  searchMusic,
 } from "@/api/music";
 import { useUserStore } from "@/stores/userStore";
 import { MusicHistoryParams } from "@/types/music";
@@ -93,5 +94,13 @@ export const useMegaMenu = () => {
   return useQuery({
     queryKey: ["megaMenu"],
     queryFn: () => getMegaMenu("hindi"),
+  });
+};
+
+export const useSearchMusic = (query: string) => {
+  return useQuery({
+    queryKey: ["searchMusic", query],
+    queryFn: () => searchMusic(query),
+    enabled: !!query,
   });
 };

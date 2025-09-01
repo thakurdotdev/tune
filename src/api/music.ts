@@ -46,7 +46,9 @@ export const addToHistory = async (songData: Song, playedTime?: number) => {
 export const getRelatedSongs = async (songId: string): Promise<Song[]> => {
   const response = await axios.get(`${SONG_URL}/song/recommend?id=${songId}`);
   if (response?.data?.data?.length) {
-    const newRecommendations = response.data.data?.map(ensureHttpsForSongUrls);
+    console.log("Related songs found:", response.data.data);
+
+    const newRecommendations = response.data.data;
     return newRecommendations;
   } else {
     return [];
@@ -77,4 +79,12 @@ export const getArtistDetails = async (
 export const getMegaMenu = async (lang: string): Promise<MegaMenu> => {
   const response = await axios.get(`${SONG_URL}/get/mega-menu?lang=${lang}`);
   return response.data.data;
+};
+
+export const searchMusic = async (query: string): Promise<Song[]> => {
+  const { data } = await axios.get(`${SONG_URL}/search/songs`, {
+    params: { q: query },
+  });
+
+  return (data?.data?.results || []).map(ensureHttpsForSongUrls);
 };

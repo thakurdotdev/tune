@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { useMegaMenu } from "@/queries/useMusic";
 import { useUserStore } from "@/stores/userStore";
 import {
@@ -21,18 +20,19 @@ import {
   Home,
   Library,
   ListMusic,
+  LogIn,
   LogOut,
   Moon,
   Radio,
-  Search,
   Settings,
   Sun,
   User,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import LazyImage from "../LazyImage";
+import MusicCommand from "../music/MusicCommand";
 import { LanguagePicker } from "./language-picker";
 import { MainNav } from "./main-nav";
 
@@ -50,7 +50,7 @@ const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const user = useUserStore((state) => state.user);
-  const [searchQuery, setSearchQuery] = useState("");
+  const logout = useUserStore((state) => state.logout);
   const [mounted, setMounted] = useState(false);
 
   const {
@@ -60,13 +60,6 @@ const Navbar = () => {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
 
   if (!mounted) return null;
 
@@ -92,23 +85,13 @@ const Navbar = () => {
 
           {/* Navigation Links - Hidden on mobile */}
           <div className="hidden lg:flex items-center space-x-1">
-            <>
-              <MainNav megaMenu={megaMenu!} className="hidden lg:block" />
-            </>
+            <MainNav megaMenu={megaMenu!} className="hidden lg:block" />
           </div>
         </div>
 
         {/* Search Bar */}
-        <div className="flex-1 max-w-md mx-4 lg:mx-8">
-          <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search songs, artists, albums..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 h-10 bg-muted/50 border-0 focus:bg-muted focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-            />
-          </form>
+        <div className="flex-1 max-w-md lg:mx-8">
+          <MusicCommand />
         </div>
 
         {/* Right Section */}
@@ -130,86 +113,95 @@ const Navbar = () => {
           </Button>
 
           {/* User Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative w-9 h-9 p-0 rounded-full hover:bg-muted transition-colors duration-200"
-              >
-                <Avatar className="w-8 h-8">
-                  <AvatarImage
-                    src={user?.profilepic}
-                    alt={user?.name || "User"}
-                  />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 p-2">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {user?.name || "Music Lover"}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email || "user@example.com"}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative w-9 h-9 p-0 rounded-full hover:bg-muted transition-colors duration-200"
+                >
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage
+                      src={user?.profilepic}
+                      alt={user?.name || "User"}
+                    />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 p-2">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user?.name || "Music Lover"}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email || "user@example.com"}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
 
-              <DropdownMenuItem
-                onClick={() => router.push("/profile")}
-                className="flex items-center space-x-2 cursor-pointer"
-              >
-                <User className="w-4 h-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push("/profile")}
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onClick={() => router.push("/library")}
-                className="flex items-center space-x-2 cursor-pointer"
-              >
-                <Library className="w-4 h-4" />
-                <span>Your Library</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push("/library")}
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <Library className="w-4 h-4" />
+                  <span>Your Library</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onClick={() => router.push("/liked")}
-                className="flex items-center space-x-2 cursor-pointer"
-              >
-                <Heart className="w-4 h-4" />
-                <span>Liked Songs</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push("/liked")}
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <Heart className="w-4 h-4" />
+                  <span>Liked Songs</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onClick={() => router.push("/downloads")}
-                className="flex items-center space-x-2 cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                <span>Downloads</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push("/downloads")}
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Downloads</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-              <DropdownMenuItem
-                onClick={() => router.push("/settings")}
-                className="flex items-center space-x-2 cursor-pointer"
-              >
-                <Settings className="w-4 h-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push("/settings")}
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-              <DropdownMenuItem className="flex items-center space-x-2 cursor-pointer text-red-600 focus:text-red-600">
-                <LogOut className="w-4 h-4" />
-                <span>Sign out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem
+                  className="flex items-center space-x-2 cursor-pointer text-red-600 focus:text-red-600"
+                  onClick={logout}
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="default" onClick={() => router.push("/login")}>
+              Login
+            </Button>
+          )}
         </div>
       </div>
     </nav>

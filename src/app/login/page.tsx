@@ -62,7 +62,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="h-[calc(100vh-4rem)] flex items-center justify-center p-4 overflow-hidden">
       <div className="w-full max-w-md">
         <Card className="border-0 shadow-xl  backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-4">

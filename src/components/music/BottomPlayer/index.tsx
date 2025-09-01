@@ -1,35 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { memo, useEffect, useMemo, useState } from "react";
-import {
-  useCurrentIndex,
-  usePlaybackStore,
-  useQueue,
-} from "@/stores/playbackStore";
+import { memo, useState } from "react";
+import { useCurrentIndex, useQueue } from "@/stores/playbackStore";
 import { ProgressBarMusic } from "../common";
 import PlayerControls from "./PlayerControls";
 import PlayerSheet from "./PlayerSheet";
 import SongInfo from "./SongInfo";
-import { useRelatedSongs } from "@/queries/useMusic";
 
 const BottomPlayer = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const currentIndex = useCurrentIndex();
   const queue = useQueue();
-  const addToQueue = usePlaybackStore((state) => state.addToQueue);
 
   const currentSong = queue[currentIndex] || null;
-  const isLastSong = currentIndex === queue.length - 1;
-
-  const getRelatedSongs = useRelatedSongs(
-    isLastSong ? currentSong?.id : undefined,
-  );
-
-  useEffect(() => {
-    if (getRelatedSongs.data?.length) {
-      addToQueue(getRelatedSongs.data);
-    }
-  }, [getRelatedSongs.data, addToQueue]);
 
   if (!currentSong) return null;
 
