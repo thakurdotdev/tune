@@ -96,7 +96,7 @@ const Navbar = () => {
 
         {/* Right Section */}
         <div className="flex items-center space-x-3">
-          <LanguagePicker />
+          {/* <LanguagePicker /> */}
 
           {/* Theme Toggle */}
           <Button
@@ -144,7 +144,7 @@ const Navbar = () => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   onClick={() => router.push("/profile")}
                   className="flex items-center space-x-2 cursor-pointer"
                 >
@@ -174,9 +174,9 @@ const Navbar = () => {
                 >
                   <Download className="w-4 h-4" />
                   <span>Downloads</span>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
 
-                <DropdownMenuSeparator />
+                {/* <DropdownMenuSeparator /> */}
 
                 <DropdownMenuItem
                   onClick={() => router.push("/settings")}

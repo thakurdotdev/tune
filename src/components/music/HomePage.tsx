@@ -23,6 +23,7 @@ import {
   PlaylistCard,
   SongCard,
 } from "./Cards";
+import "./music.css";
 
 const SectionHeader = React.memo(
   ({
@@ -71,27 +72,207 @@ const LazySection = React.memo(
   },
 );
 
+const useWheelScroll = () => {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [isScrollable, setIsScrollable] = React.useState(false);
+
+  React.useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    const checkScrollable = () => {
+      const viewport = scrollContainer.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+      if (viewport) {
+        const canScroll = viewport.scrollWidth > viewport.clientWidth;
+        setIsScrollable(canScroll);
+        scrollContainer.setAttribute('data-scrollable', canScroll.toString());
+      }
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      const viewport = scrollContainer.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+      if (!viewport) return;
+
+      const canScrollHorizontally = viewport.scrollWidth > viewport.clientWidth;
+      
+      if (canScrollHorizontally) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Calculate scroll amount based on wheel delta with higher multiplier
+        // Use deltaX if available (for horizontal scrolling), otherwise use deltaY
+        let scrollAmount = 0;
+        
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+          // Horizontal wheel/trackpad scroll
+          scrollAmount = e.deltaX * 3; // Increased from 2 to 3
+        } else {
+          // Vertical wheel scroll - convert to horizontal with higher sensitivity
+          scrollAmount = e.deltaY * 8; // Increased from 4 to 8 for much more responsiveness
+        }
+        
+        // Add momentum for faster scrolling
+        if (Math.abs(e.deltaY) > 50) {
+          scrollAmount *= 3; // Increased from 2 to 3 for even faster wheel scrolls
+        }
+        
+        // Add acceleration for very fast scrolling
+        if (Math.abs(e.deltaY) > 100) {
+          scrollAmount *= 2; // Additional multiplier for very fast scrolls
+        }
+        
+        viewport.scrollLeft += scrollAmount;
+      }
+    };
+
+    // Add keyboard navigation support
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const viewport = scrollContainer.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+      if (!viewport) return;
+
+      const canScrollHorizontally = viewport.scrollWidth > viewport.clientWidth;
+      
+      if (canScrollHorizontally && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+        e.preventDefault();
+        const scrollAmount = e.key === 'ArrowLeft' ? -300 : 300; // Large scroll for keyboard
+        viewport.scrollLeft += scrollAmount;
+      }
+    };
+
+    // Initial check
+    checkScrollable();
+    
+    // Event listeners
+    window.addEventListener('resize', checkScrollable);
+    scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
+    scrollContainer.addEventListener('keydown', handleKeyDown);
+    
+    // Make container focusable for keyboard navigation
+    scrollContainer.setAttribute('tabindex', '0');
+
+    // Observer for content changes
+    const observer = new MutationObserver(checkScrollable);
+    observer.observe(scrollContainer, { childList: true, subtree: true });
+
+    return () => {
+      window.removeEventListener('resize', checkScrollable);
+      scrollContainer.removeEventListener('wheel', handleWheel);
+      scrollContainer.removeEventListener('keydown', handleKeyDown);
+      observer.disconnect();
+    };
+  }, []);
+
+  return { scrollRef, isScrollable };
+};
+
 const ScrollableSection = React.memo(
-  ({ children }: { children: React.ReactNode }) => (
-    <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex space-x-3 py-2 px-0.5">{children}</div>
-      <ScrollBar
-        orientation="horizontal"
-        className="h-2 mt-3 opacity-50 cursor-pointer"
-      />
-    </ScrollArea>
-  ),
+  ({ children }: { children: React.ReactNode }) => {
+    const { scrollRef, isScrollable } = useWheelScroll();
+
+    return (
+      <div 
+        className={cn(
+          "scrollable-section", 
+          isScrollable && "relative",
+          "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg"
+        )} 
+        ref={scrollRef}
+        role="region"
+        aria-label="Scrollable content section"
+      >
+        <ScrollArea className="w-full whitespace-nowrap horizontal-scroll-container">
+          <div className="flex space-x-3 py-2 px-0.5">{children}</div>
+          <ScrollBar
+            orientation="horizontal"
+            className="h-2 mt-3 opacity-50 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+          />
+        </ScrollArea>
+      </div>
+    );
+  },
 );
 
-const GridSection = React.memo(
-  ({
-    children,
-    className,
-  }: {
-    children: React.ReactNode;
-    className?: string;
-  }) => <div className={cn("grid gap-3 md:gap-4", className)}>{children}</div>,
-);
+const RecentlyPlayedSection = React.memo(({ recentData }: { recentData: any }) => {
+  const { scrollRef, isScrollable } = useWheelScroll();
+
+  return (
+    <LazySection
+      title="Recently Played"
+      subtitle="Pick up where you left off"
+      icon={Clock}
+    >
+      {/* Scrollable layout for recently played - 4 items on mobile, 8 items (4x2) on desktop per page */}
+      <div 
+        className={cn(
+          "scrollable-section", 
+          isScrollable && "relative",
+          "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg"
+        )} 
+        ref={scrollRef}
+        role="region"
+        aria-label="Recently played music section"
+      >
+        <ScrollArea className="w-full horizontal-scroll-container">
+          <div className="flex space-x-6 md:space-x-8 pb-4">
+            {/* Create pages of items - Mobile: 4 items per page, Desktop: 8 items per page */}
+            {Array.from({
+              length: Math.ceil(
+                (recentData?.recentlyPlayed?.length ?? 0) / 4,
+              ),
+            }).map((_, pageIndex) => {
+              const mobileStartIndex = pageIndex * 4;
+              const mobileEndIndex = mobileStartIndex + 4;
+              const mobilePageItems = (
+                recentData?.recentlyPlayed ?? []
+              ).slice(mobileStartIndex, mobileEndIndex);
+
+              return (
+                <div
+                  key={`mobile-${pageIndex}`}
+                  className="md:hidden flex-shrink-0 w-full grid grid-cols-1 gap-3"
+                >
+                  {mobilePageItems.map((song: any) => (
+                    <FullSongCard song={song} key={song.id} />
+                  ))}
+                </div>
+              );
+            })}
+
+            {/* Desktop pages - 8 items (4x2) per page */}
+            {Array.from({
+              length: Math.ceil(
+                (recentData?.recentlyPlayed?.length ?? 0) / 8,
+              ),
+            }).map((_, pageIndex) => {
+              const desktopStartIndex = pageIndex * 8;
+              const desktopEndIndex = desktopStartIndex + 8;
+              const desktopPageItems = (
+                recentData?.recentlyPlayed ?? []
+              ).slice(desktopStartIndex, desktopEndIndex);
+
+              return (
+                <div
+                  key={`desktop-${pageIndex}`}
+                  className="hidden md:block flex-shrink-0 w-full"
+                >
+                  <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
+                    {desktopPageItems.map((song: any) => (
+                      <FullSongCard song={song} key={song.id} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <ScrollBar
+            orientation="horizontal"
+            className="h-2 mt-3 opacity-50 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+          />
+        </ScrollArea>
+      </div>
+    </LazySection>
+  );
+});
 
 const LoadingSkeleton = React.memo(() => (
   <div className="space-y-8 md:space-y-12">
@@ -196,74 +377,11 @@ const HomePage = () => {
 
   return (
     <div className="relative pt-4 md:pt-6 pb-20 md:pb-24">
-      <WelcomeHeader />
+      {/* <WelcomeHeader /> */}
 
       <div className="space-y-8 md:space-y-12">
         {hasRecentlyPlayed && (
-          <LazySection
-            title="Recently Played"
-            subtitle="Pick up where you left off"
-            icon={Clock}
-          >
-            {/* Scrollable layout for recently played - 4 items on mobile, 8 items (4x2) on desktop per page */}
-            <ScrollArea className="w-full">
-              <div className="flex space-x-6 md:space-x-8 pb-4">
-                {/* Create pages of items - Mobile: 4 items per page, Desktop: 8 items per page */}
-                {Array.from({
-                  length: Math.ceil(
-                    (recentData?.recentlyPlayed?.length ?? 0) / 4,
-                  ),
-                }).map((_, pageIndex) => {
-                  const mobileStartIndex = pageIndex * 4;
-                  const mobileEndIndex = mobileStartIndex + 4;
-                  const mobilePageItems = (
-                    recentData?.recentlyPlayed ?? []
-                  ).slice(mobileStartIndex, mobileEndIndex);
-
-                  return (
-                    <div
-                      key={`mobile-${pageIndex}`}
-                      className="md:hidden flex-shrink-0 w-full grid grid-cols-1 gap-3"
-                    >
-                      {mobilePageItems.map((song) => (
-                        <FullSongCard song={song} key={song.id} />
-                      ))}
-                    </div>
-                  );
-                })}
-
-                {/* Desktop pages - 8 items (4x2) per page */}
-                {Array.from({
-                  length: Math.ceil(
-                    (recentData?.recentlyPlayed?.length ?? 0) / 8,
-                  ),
-                }).map((_, pageIndex) => {
-                  const desktopStartIndex = pageIndex * 8;
-                  const desktopEndIndex = desktopStartIndex + 8;
-                  const desktopPageItems = (
-                    recentData?.recentlyPlayed ?? []
-                  ).slice(desktopStartIndex, desktopEndIndex);
-
-                  return (
-                    <div
-                      key={`desktop-${pageIndex}`}
-                      className="hidden md:block flex-shrink-0 w-full"
-                    >
-                      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
-                        {desktopPageItems.map((song) => (
-                          <FullSongCard song={song} key={song.id} />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <ScrollBar
-                orientation="horizontal"
-                className="h-2 mt-3 opacity-50 cursor-pointer"
-              />
-            </ScrollArea>
-          </LazySection>
+          <RecentlyPlayedSection recentData={recentData} />
         )}
 
         {hasMostlyListened && (

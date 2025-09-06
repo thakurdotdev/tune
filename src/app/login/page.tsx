@@ -20,6 +20,7 @@ import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
 import { useLogin } from "@/queries/useUser";
 import { API_URL } from "@/constants";
 import { useRouter } from "next/dist/client/components/navigation";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z
@@ -55,14 +56,16 @@ const Login = () => {
     try {
       await loginMutation.mutateAsync(data);
       router.push("/");
-    } catch (error) {
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "Login failed. Please try again.";
+      toast.error(message);
       // Error handling is managed by the mutation
       console.error("Login failed:", error);
     }
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex items-center justify-center p-4 overflow-hidden">
+    <div className="min-h-[90vh] -mt-16 flex items-center justify-center p-4 overflow-hidden">
       <div className="w-full max-w-md">
         <Card className="border-0 shadow-xl  backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-4">
@@ -80,7 +83,7 @@ const Login = () => {
               variant="outline"
               className="w-full h-11  transition-colors"
               onClick={() => {
-                window.location.href = `${API_URL}/api/auth/google`;
+                window.location.href = `${API_URL}/api/auth/google?client=${window.location.origin}`;
               }}
             >
               <img src={"./google.svg"} alt="Google" className="w-5 h-5 mr-3" />
@@ -163,7 +166,7 @@ const Login = () => {
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
                     {loginMutation.error instanceof Error
-                      ? loginMutation.error.message
+                      ? (loginMutation.error as any)?.response?.data?.message || loginMutation.error.message
                       : "Login failed. Please check your credentials and try again."}
                   </AlertDescription>
                 </Alert>
@@ -188,12 +191,12 @@ const Login = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+        {/* <p className="text-center text-sm text-slate-600 dark:text-slate-400">
           Don't have an account?{" "}
           <button className="font-medium text-slate-900 dark:text-slate-100 hover:underline transition-colors">
             Sign up
           </button>
-        </p>
+        </p> */}
       </div>
     </div>
   );

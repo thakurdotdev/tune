@@ -140,3 +140,112 @@
 .page-indicator:hover {
   transform: scale(1.25);
 }
+
+/* Enhanced scrollbar styles for horizontal scrolling */
+.horizontal-scroll-container {
+  scroll-behavior: auto; /* Changed from smooth to auto for immediate response */
+}
+
+.horizontal-scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.5);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.8);
+}
+
+/* Smooth scroll animation for wheel events - removed overly smooth behavior */
+.wheel-scroll-smooth {
+  scroll-behavior: auto; /* Immediate response instead of smooth */
+}
+
+/* Enhanced scrollable sections with better performance */
+.scrollable-section {
+  position: relative;
+  overflow: hidden; /* Prevent content overflow */
+}
+
+/* Improved fade gradient for better visual feedback */
+.scrollable-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px; /* Increased from 20px for better visibility */
+  background: linear-gradient(to left, hsl(var(--background)) 0%, hsl(var(--background) / 0.8) 50%, transparent 100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2; /* Increased z-index */
+}
+
+.scrollable-section[data-scrollable="true"]::before {
+  opacity: 1;
+}
+
+/* Add left fade as well for better UX */
+.scrollable-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(to right, hsl(var(--background)) 0%, hsl(var(--background) / 0.8) 50%, transparent 100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+
+.scrollable-section[data-scrollable="true"]::after {
+  opacity: 0.7; /* Slightly less visible than right fade */
+}
+
+/* Scroll indicator styling */
+.scrollable-section .scroll-indicator {
+  background: hsl(var(--background) / 0.9);
+  backdrop-filter: blur(4px);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid hsl(var(--border) / 0.3);
+  transition: opacity 0.3s ease;
+}
+
+/* Focus states for keyboard navigation */
+.scrollable-section:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Enhanced scrollbar for better visibility on hover */
+.horizontal-scroll-container [data-radix-scroll-area-scrollbar] {
+  transition: opacity 0.2s ease;
+}
+
+.scrollable-section:hover .horizontal-scroll-container [data-radix-scroll-area-scrollbar] {
+  opacity: 1 !important;
+}
+
+/* Cursor indicators */
+.scrollable-section[data-scrollable="true"] {
+  cursor: grab;
+}
+
+.scrollable-section[data-scrollable="true"]:active {
+  cursor: grabbing;
+}

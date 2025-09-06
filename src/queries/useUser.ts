@@ -60,5 +60,9 @@ export const useLogin = () => {
         console.error("Failed to fetch profile after login:", error);
       }
     },
+    onError: (error: any) => {
+      console.error("Login error:", error);
+      throw error; // Rethrow to handle in the component if needed
+    }
   });
 };
