@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { Home, Search, Library, Heart, Radio } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Home, Search, Library, Heart, Radio } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
 
 const mobileNavItems = [
-  { icon: Home, label: "Home", href: "/" },
-  { icon: Search, label: "Search", href: "/search" },
-  { icon: Library, label: "Library", href: "/library" },
-  { icon: Heart, label: "Liked", href: "/liked" },
-  { icon: Radio, label: "Radio", href: "/radio" },
+  { icon: Home, label: 'Home', href: '/' },
+  { icon: Search, label: 'Search', href: '/search' },
+  { icon: Library, label: 'Library', href: '/library' },
+  { icon: Heart, label: 'Liked', href: '/liked' },
+  { icon: Radio, label: 'Radio', href: '/radio' },
 ];
 
 const MobileNavbar = () => {
@@ -29,22 +29,15 @@ const MobileNavbar = () => {
               size="sm"
               onClick={() => router.push(item.href)}
               className={cn(
-                "flex flex-col items-center space-y-1 h-12 w-16 p-0 transition-all duration-200",
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground",
+                'flex flex-col items-center space-y-1 h-12 w-16 p-0 transition-all duration-200',
+                isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               )}
             >
               <item.icon
-                className={cn(
-                  "w-5 h-5 transition-all duration-200",
-                  isActive && "scale-110",
-                )}
+                className={cn('w-5 h-5 transition-all duration-200', isActive && 'scale-110')}
               />
               <span className="text-xs font-medium">{item.label}</span>
-              {isActive && (
-                <div className="absolute bottom-0 w-1 h-1 bg-primary rounded-full" />
-              )}
+              {isActive && <div className="absolute bottom-0 w-1 h-1 bg-primary rounded-full" />}
             </Button>
           );
         })}

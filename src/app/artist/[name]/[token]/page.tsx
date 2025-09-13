@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { FullSongCard } from "@/components/music/Cards";
-import DetailPageSkeleton from "@/components/DetailPageSkeleton";
-import { useArtistDetails } from "@/queries/useMusic";
-import { use } from "react";
+import { FullSongCard } from '@/components/music/Cards';
+import DetailPageSkeleton from '@/components/DetailPageSkeleton';
+import { useArtistDetails } from '@/queries/useMusic';
+import { use } from 'react';
 
 const Artist = ({ params }: { params: Promise<{ token: string }> }) => {
   const { token } = use(params);
@@ -15,9 +15,7 @@ const Artist = ({ params }: { params: Promise<{ token: string }> }) => {
   }
 
   const bgUrl =
-    artistData?.image?.[2]?.link ||
-    artistData?.image?.[1]?.link ||
-    artistData?.image?.[0]?.link;
+    artistData?.image?.[2]?.link || artistData?.image?.[1]?.link || artistData?.image?.[0]?.link;
 
   return (
     <div className="flex flex-col gap-10 py-5">
@@ -26,7 +24,7 @@ const Artist = ({ params }: { params: Promise<{ token: string }> }) => {
         className="w-full h-[250px] sm:h-[300px] rounded-2xl"
         style={{
           backgroundImage: `url('${bgUrl}')`,
-          backgroundSize: "cover",
+          backgroundSize: 'cover',
         }}
       >
         <div className="rounded-2xl w-full h-full bg-black/60 backdrop-blur-sm flex flex-col transition-all">
@@ -46,9 +44,7 @@ const Artist = ({ params }: { params: Promise<{ token: string }> }) => {
                   {artistData?.follower_count} followers
                 </p>
                 <div className="mt-5 flex flex-col">
-                  <p className="text-sm text-white/80">
-                    {artistData?.list_count} songs
-                  </p>
+                  <p className="text-sm text-white/80">{artistData?.list_count} songs</p>
                 </div>
               </div>
             </div>

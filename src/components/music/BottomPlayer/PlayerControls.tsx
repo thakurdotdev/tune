@@ -1,14 +1,9 @@
-"use client";
+'use client';
 
-import {
-  useCurrentIndex,
-  useIsPlaying,
-  usePlaybackStore,
-  useQueue,
-} from "@/stores/playbackStore";
-import { memo, useEffect } from "react";
-import { useAudioPlayerContext } from "react-use-audio-player";
-import { MusicControls, VolumeControl } from "../common";
+import { useCurrentIndex, useIsPlaying, usePlaybackStore, useQueue } from '@/stores/playbackStore';
+import { memo, useEffect } from 'react';
+import { useAudioPlayerContext } from 'react-use-audio-player';
+import { MusicControls, VolumeControl } from '../common';
 
 const PlayerControls = memo(() => {
   const { togglePlayPause } = useAudioPlayerContext();
@@ -31,7 +26,7 @@ const PlayerControls = memo(() => {
       if (currentIndex < queue.length - 1) {
         index = currentIndex + 1;
       } else {
-        if (repeat === "all") {
+        if (repeat === 'all') {
           index = 0;
         }
       }
@@ -50,7 +45,7 @@ const PlayerControls = memo(() => {
       if (currentIndex > 0) {
         index = currentIndex - 1;
       } else {
-        if (repeat === "all") {
+        if (repeat === 'all') {
           index = queue.length - 1;
         } else {
           index = currentIndex;
@@ -64,19 +59,19 @@ const PlayerControls = memo(() => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
-        e.key === " " &&
+        e.key === ' ' &&
         document.activeElement &&
-        !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
+        !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)
       ) {
         e.preventDefault();
         togglePlayPause();
       }
-      if (e.key === "ArrowRight") skipToNext();
-      if (e.key === "ArrowLeft") skipToPrev();
+      if (e.key === 'ArrowRight') skipToNext();
+      if (e.key === 'ArrowLeft') skipToPrev();
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [togglePlayPause, skipToNext, skipToPrev]);
 
   return (
@@ -87,5 +82,5 @@ const PlayerControls = memo(() => {
   );
 });
 
-PlayerControls.displayName = "PlayerControls";
+PlayerControls.displayName = 'PlayerControls';
 export default PlayerControls;

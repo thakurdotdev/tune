@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { PlayerConfig, AudioQuality } from "../types/music";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { PlayerConfig, AudioQuality } from '../types/music';
 
 interface ConfigStore extends PlayerConfig {
   // Actions
@@ -16,7 +16,7 @@ interface ConfigStore extends PlayerConfig {
 }
 
 const defaultConfig: PlayerConfig = {
-  audioQuality: "highest",
+  audioQuality: 'highest',
   preloadNext: true,
   gaplessPlayback: true,
   crossfade: 1000,
@@ -56,7 +56,7 @@ export const useConfigStore = create<ConfigStore>()(
       },
     }),
     {
-      name: "syncvibe-player-config",
+      name: 'syncvibe-player-config',
       // Only persist certain fields
       partialize: (state) => ({
         audioQuality: state.audioQuality,
@@ -64,8 +64,8 @@ export const useConfigStore = create<ConfigStore>()(
         gaplessPlayback: state.gaplessPlayback,
         crossfade: state.crossfade,
       }),
-    },
-  ),
+    }
+  )
 );
 
 // Derived selectors

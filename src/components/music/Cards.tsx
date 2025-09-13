@@ -1,30 +1,25 @@
-"use client";
+'use client';
 
-import LazyImage from "@/components/LazyImage";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import LazyImage from '@/components/LazyImage';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn, getHref } from "@/lib/utils";
-import { useAddToHistory } from "@/queries/useMusic";
-import {
-  useCurrentIndex,
-  useIsPlaying,
-  usePlaybackStore,
-  useQueue,
-} from "@/stores/playbackStore";
-import { Album, Artist, Playlist } from "@/types/music";
-import { Song } from "@/types/song";
-import { Heart, MoreVertical, Play, User } from "lucide-react";
-import Link from "next/link";
-import { memo, useCallback, useMemo } from "react";
-import { useAudioPlayerContext } from "react-use-audio-player";
-import { toast } from "sonner";
-import "./music.css";
+} from '@/components/ui/dropdown-menu';
+import { cn, getHref } from '@/lib/utils';
+import { useAddToHistory } from '@/queries/useMusic';
+import { useCurrentIndex, useIsPlaying, usePlaybackStore, useQueue } from '@/stores/playbackStore';
+import { Album, Artist, Playlist } from '@/types/music';
+import { Song } from '@/types/song';
+import { Heart, MoreVertical, Play, User } from 'lucide-react';
+import Link from 'next/link';
+import { memo, useCallback, useMemo } from 'react';
+import { useAudioPlayerContext } from 'react-use-audio-player';
+import { toast } from 'sonner';
+import './music.css';
 
 const getImageUrl = (song: Song) => {
   return Array.isArray(song.image)
@@ -41,7 +36,7 @@ export const AudioWave = memo(() => (
         style={{
           animationDelay: `${i * 0.15}s`,
           height: `${15 + Math.sin(i) * 2}px`,
-          animationDuration: "1.2s",
+          animationDuration: '1.2s',
         }}
       />
     ))}
@@ -63,12 +58,12 @@ export const SongCard = memo(({ song }: { song: Song }) => {
 
   const isCurrentSong = currentSong?.id === song.id;
   const isInQueue = queue.some((item: Song) => item.id === song.id);
-  const name = song.name || song.title || "";
+  const name = song.name || song.title || '';
   const artistName =
     song?.artist_map?.artists
       ?.slice(0, 3)
       ?.map((artist) => artist.name)
-      .join(", ") || song?.name;
+      .join(', ') || song?.name;
 
   const handlePlayClick = async () => {
     setIsPlayerInit(true);
@@ -88,15 +83,12 @@ export const SongCard = memo(({ song }: { song: Song }) => {
   };
 
   return (
-    <div
-      className="group cursor-pointer w-full max-w-[160px] sm:w-40"
-      key={song.id}
-    >
+    <div className="group cursor-pointer w-full max-w-[160px] sm:w-40" key={song.id}>
       {/* Main Card */}
       <div
         className={cn(
-          "relative rounded-xl overflow-hidden hover:bg-accent/50 p-3",
-          isCurrentSong && "bg-accent border border-primary/20",
+          'relative rounded-xl overflow-hidden hover:bg-accent/50 p-3',
+          isCurrentSong && 'bg-accent border border-primary/20'
         )}
       >
         {/* Album Art Section */}
@@ -113,17 +105,17 @@ export const SongCard = memo(({ song }: { song: Song }) => {
             {/* Play Button - Always visible on mobile, hover on desktop */}
             <div
               className={cn(
-                "absolute bottom-2 right-2",
+                'absolute bottom-2 right-2',
                 isCurrentSong && isPlaying
-                  ? "" // Always visible when current song is playing
-                  : "sm:transform sm:translate-x-8 sm:opacity-0 sm:group-hover:translate-x-0 sm:group-hover:opacity-100",
+                  ? '' // Always visible when current song is playing
+                  : 'sm:transform sm:translate-x-8 sm:opacity-0 sm:group-hover:translate-x-0 sm:group-hover:opacity-100'
               )}
             >
               <Button
                 size="sm"
                 onClick={handlePlayClick}
                 className={cn(
-                  "w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-md bg-primary/10 backdrop-blur-sm",
+                  'w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-md bg-primary/10 backdrop-blur-sm'
                 )}
               >
                 {isCurrentSong && isPlaying ? (
@@ -140,17 +132,13 @@ export const SongCard = memo(({ song }: { song: Song }) => {
         <div className="space-y-1">
           <h3
             className={cn(
-              "text-sm sm:text-base font-medium line-clamp-1 ",
-              isCurrentSong
-                ? "text-primary"
-                : "text-foreground group-hover:text-primary",
+              'text-sm sm:text-base font-medium line-clamp-1 ',
+              isCurrentSong ? 'text-primary' : 'text-foreground group-hover:text-primary'
             )}
           >
             {name}
           </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
-            {artistName}
-          </p>
+          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{artistName}</p>
         </div>
       </div>
     </div>
@@ -174,12 +162,12 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
   if (!song?.id || !song?.image?.[2]) return null;
 
   const isCurrentSong = currentSong?.id === song.id;
-  const name = song.name || song.title || "";
+  const name = song.name || song.title || '';
   const artistName =
     song?.artist_map?.artists
       ?.slice(0, 3)
       ?.map((artist) => artist.name)
-      .join(", ") || song?.name;
+      .join(', ') || song?.name;
 
   const handlePlayClick = async () => {
     setIsPlayerInit(true);
@@ -210,7 +198,7 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
       addToQueue(song);
       toast.success(`Added ${name} to queue`);
     },
-    [song, name, addToQueue],
+    [song, name, addToQueue]
   );
 
   const handleRemoveFromQueue = useCallback(
@@ -222,15 +210,15 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
       }
       toast.success(`Removed ${name} from queue`);
     },
-    [queue, song.id, name, removeFromQueue],
+    [queue, song.id, name, removeFromQueue]
   );
 
   return (
     <div
       key={song.id}
       className={cn(
-        "group relative overflow-hidden hover:bg-accent/50  rounded-lg p-2",
-        isCurrentSong && "bg-accent",
+        'group relative overflow-hidden hover:bg-accent/50  rounded-lg p-2',
+        isCurrentSong && 'bg-accent'
       )}
     >
       <div className="relative flex items-center gap-3">
@@ -253,37 +241,24 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
         </div>
 
         {/* Song Information */}
-        <div
-          className="flex-1 min-w-0 cursor-pointer"
-          onClick={handlePlayClick}
-        >
+        <div className="flex-1 min-w-0 cursor-pointer" onClick={handlePlayClick}>
           <h4 className="text-sm font-medium line-clamp-1 mb-1">{name}</h4>
-          <p className="text-xs text-muted-foreground line-clamp-1">
-            {artistName}
-          </p>
+          <p className="text-xs text-muted-foreground line-clamp-1">{artistName}</p>
         </div>
 
         {/* Actions - Always visible on mobile */}
-        {song.type === "song" && (
-          <div
-            className={cn(
-              "flex items-center gap-1 transition-all duration-300 ease-out",
-            )}
-          >
+        {song.type === 'song' && (
+          <div className={cn('flex items-center gap-1 transition-all duration-300 ease-out')}>
             <Button
               variant="ghost"
               size="sm"
               className={cn(
-                "h-8 w-8 p-0 rounded-full transition-all duration-150",
-                isInQueue
-                  ? "text-destructive hover:bg-destructive/10"
-                  : "hover:bg-accent",
+                'h-8 w-8 p-0 rounded-full transition-all duration-150',
+                isInQueue ? 'text-destructive hover:bg-destructive/10' : 'hover:bg-accent'
               )}
               onClick={isInQueue ? handleRemoveFromQueue : handleAddToQueue}
             >
-              <Heart
-                className={cn("h-3.5 w-3.5", isInQueue && "fill-current")}
-              />
+              <Heart className={cn('h-3.5 w-3.5', isInQueue && 'fill-current')} />
             </Button>
 
             <DropdownMenu>
@@ -299,10 +274,7 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
               <DropdownMenuContent align="end" className="w-48">
                 {song?.album_id && (
                   <DropdownMenuItem asChild>
-                    <Link
-                      href={`/music/album/${song.album_id}`}
-                      className="cursor-pointer"
-                    >
+                    <Link href={`/music/album/${song.album_id}`} className="cursor-pointer">
                       Go to album
                     </Link>
                   </DropdownMenuItem>
@@ -321,7 +293,7 @@ export const FullSongCard = memo(({ song }: { song: Song }) => {
                   onClick={isInQueue ? handleRemoveFromQueue : handleAddToQueue}
                   className="cursor-pointer"
                 >
-                  {isInQueue ? "Remove from queue" : "Add to queue"}
+                  {isInQueue ? 'Remove from queue' : 'Add to queue'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -337,13 +309,13 @@ export const ArtistCard = memo(({ artist }: { artist: Artist }) => {
 
   const imageUrl = useMemo(
     () => (Array.isArray(artist.image) ? artist.image[2].link : artist.image),
-    [artist.image],
+    [artist.image]
   );
 
   return (
     <Link
       key={artist.id}
-      href={getHref(artist.url || "", "artist")}
+      href={getHref(artist.url || '', 'artist')}
       className="group cursor-pointer w-full max-w-[160px] sm:w-40"
     >
       {/* Main Card */}
@@ -386,7 +358,7 @@ export const AlbumCard = memo(({ album }: { album: Album }) => {
   return (
     <Link
       key={album.id}
-      href={getHref(album.url || "", "album")}
+      href={getHref(album.url || '', 'album')}
       className="group cursor-pointer w-full max-w-[160px] sm:w-40"
     >
       <div className="relative rounded-xl overflow-hidden hover:bg-accent/50  p-3">
@@ -407,8 +379,8 @@ export const AlbumCard = memo(({ album }: { album: Album }) => {
             {/* Play Button */}
             <div
               className={cn(
-                "absolute bottom-2 right-2 transition-all duration-300 ease-out",
-                "sm:transform sm:translate-x-8 sm:opacity-0 sm:group-hover:translate-x-0 sm:group-hover:opacity-100",
+                'absolute bottom-2 right-2 transition-all duration-300 ease-out',
+                'sm:transform sm:translate-x-8 sm:opacity-0 sm:group-hover:translate-x-0 sm:group-hover:opacity-100'
               )}
             >
               <Button
@@ -446,17 +418,16 @@ export const AlbumCard = memo(({ album }: { album: Album }) => {
 export const PlaylistCard = memo(({ playlist }: { playlist: Playlist }) => {
   if (!playlist?.name || !playlist?.image) return null;
 
-  const subtitle = useMemo(() => playlist.subtitle || "Playlist", [playlist]);
+  const subtitle = useMemo(() => playlist.subtitle || 'Playlist', [playlist]);
   const imageUrl = useMemo(
-    () =>
-      Array.isArray(playlist.image) ? playlist.image[2].link : playlist.image,
-    [playlist.image],
+    () => (Array.isArray(playlist.image) ? playlist.image[2].link : playlist.image),
+    [playlist.image]
   );
 
   return (
     <Link
       key={playlist.id}
-      href={getHref(playlist.url || "", playlist.type)}
+      href={getHref(playlist.url || '', playlist.type)}
       className="group cursor-pointer w-full max-w-[160px] sm:w-40"
     >
       {/* Main Card */}
@@ -487,8 +458,8 @@ export const PlaylistCard = memo(({ playlist }: { playlist: Playlist }) => {
             {/* Play Button */}
             <div
               className={cn(
-                "absolute bottom-2 right-2 transition-all duration-300 ease-out",
-                "sm:transform sm:translate-x-8 sm:opacity-0 sm:group-hover:translate-x-0 sm:group-hover:opacity-100",
+                'absolute bottom-2 right-2 transition-all duration-300 ease-out',
+                'sm:transform sm:translate-x-8 sm:opacity-0 sm:group-hover:translate-x-0 sm:group-hover:opacity-100'
               )}
             >
               <Button
@@ -506,9 +477,7 @@ export const PlaylistCard = memo(({ playlist }: { playlist: Playlist }) => {
           <h3 className="text-sm sm:text-base font-medium line-clamp-1  text-foreground group-hover:text-primary">
             {playlist.name}
           </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
-            {subtitle}
-          </p>
+          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{subtitle}</p>
         </div>
       </div>
     </Link>

@@ -1,13 +1,8 @@
-import { useAddToHistory } from "@/queries/useMusic";
-import {
-  useCurrentIndex,
-  useIsPlaying,
-  usePlaybackStore,
-  useQueue,
-} from "@/stores/playbackStore";
-import { Song } from "@/types/song";
-import React, { useCallback, useEffect, useRef } from "react";
-import { useAudioPlayerContext } from "react-use-audio-player";
+import { useAddToHistory } from '@/queries/useMusic';
+import { useCurrentIndex, useIsPlaying, usePlaybackStore, useQueue } from '@/stores/playbackStore';
+import { Song } from '@/types/song';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { useAudioPlayerContext } from 'react-use-audio-player';
 
 interface PlayerProviderProps {
   children: React.ReactNode;
@@ -30,7 +25,7 @@ const getArtworkUrl = (song: Song) => {
     // Assuming image array is sorted by quality, get the highest quality
     return song.image[song.image.length - 1]?.link || song.image[0]?.link;
   }
-  return "";
+  return '';
 };
 
 export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
@@ -53,36 +48,36 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
   // MediaSession setup and handlers
   const setupMediaSession = useCallback(
     (song: Song) => {
-      if ("mediaSession" in navigator) {
+      if ('mediaSession' in navigator) {
         // Set metadata
         navigator.mediaSession.metadata = new MediaMetadata({
-          title: song.name || song.title || "Unknown Title",
-          artist: song.artist || song.subtitle || "Unknown Artist",
-          album: song.album || "Unknown Album",
+          title: song.name || song.title || 'Unknown Title',
+          artist: song.artist || song.subtitle || 'Unknown Artist',
+          album: song.album || 'Unknown Album',
           artwork: [
             {
               src: getArtworkUrl(song),
-              sizes: "512x512",
-              type: "image/jpeg",
+              sizes: '512x512',
+              type: 'image/jpeg',
             },
           ],
         });
 
         // Set playback state
-        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+        navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
 
         // Set action handlers
-        navigator.mediaSession.setActionHandler("play", () => {
+        navigator.mediaSession.setActionHandler('play', () => {
           setIsPlaying(true);
           play();
         });
 
-        navigator.mediaSession.setActionHandler("pause", () => {
+        navigator.mediaSession.setActionHandler('pause', () => {
           setIsPlaying(false);
           pause();
         });
 
-        navigator.mediaSession.setActionHandler("nexttrack", () => {
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
           const nextSong = getNextSong();
           if (nextSong) {
             // getNextSong already updates the currentIndex
@@ -90,7 +85,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
           }
         });
 
-        navigator.mediaSession.setActionHandler("previoustrack", () => {
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
           const prevSong = getPreviousSong();
           if (prevSong) {
             // getPreviousSong already updates the currentIndex
@@ -98,23 +93,23 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
           }
         });
 
-        navigator.mediaSession.setActionHandler("stop", () => {
+        navigator.mediaSession.setActionHandler('stop', () => {
           setIsPlaying(false);
           pause();
         });
 
-        navigator.mediaSession.setActionHandler("seekto", (details) => {
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
           seek(details.seekTime!);
         });
       }
     },
-    [isPlaying, setIsPlaying, play, pause, getNextSong, getPreviousSong],
+    [isPlaying, setIsPlaying, play, pause, getNextSong, getPreviousSong]
   );
 
   // Update MediaSession playback state when playing state changes
   useEffect(() => {
-    if ("mediaSession" in navigator && currentlyLoadedSongRef.current) {
-      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+    if ('mediaSession' in navigator && currentlyLoadedSongRef.current) {
+      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
     }
   }, [isPlaying]);
   const onEndHandler = useCallback(() => {
@@ -124,7 +119,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
       index = Math.floor(Math.random() * queue.length);
     } else {
       if (currentIndex < queue.length - 1) {
-        if (repeat === "none") {
+        if (repeat === 'none') {
           index = currentIndex + 1;
 
           if (index !== -1) {
@@ -135,21 +130,13 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
           }
         }
       } else {
-        if (repeat === "all") {
+        if (repeat === 'all') {
           index = 0;
         }
       }
     }
     setCurrentIndex(index);
-  }, [
-    currentIndex,
-    queue.length,
-    isShuffle,
-    repeat,
-    setCurrentIndex,
-    addToHistory,
-    queue,
-  ]);
+  }, [currentIndex, queue.length, isShuffle, repeat, setCurrentIndex, addToHistory, queue]);
 
   useEffect(() => {
     // Don't do anything if we don't have a queue or current song
@@ -188,14 +175,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
       // If it's the same song but MediaSession might need updating
       setupMediaSession(currentSong);
     }
-  }, [
-    currentIndex,
-    queue,
-    load,
-    isPlayerInit,
-    onEndHandler,
-    setupMediaSession,
-  ]);
+  }, [currentIndex, queue, load, isPlayerInit, onEndHandler, setupMediaSession]);
 
   return <>{children}</>;
 };

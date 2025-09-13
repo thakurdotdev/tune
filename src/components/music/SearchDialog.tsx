@@ -1,21 +1,15 @@
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useSearchMusic } from "@/queries/useMusic";
-import { Loader2, Search, X, XCircle } from "lucide-react";
-import { useCallback, useState } from "react";
-import { FullSongCard } from "./Cards";
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useSearchMusic } from '@/queries/useMusic';
+import { Loader2, Search, X, XCircle } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { FullSongCard } from './Cards';
 
-const SearchDialog = ({
-  open,
-  setOpen,
-}: {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}) => {
-  const [searchQuery, setSearchQuery] = useState("");
+const SearchDialog = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) => {
+  const [searchQuery, setSearchQuery] = useState('');
 
   const debouncedQuery = useDebounce(searchQuery, 500);
 
@@ -23,7 +17,7 @@ const SearchDialog = ({
 
   const handleClose = useCallback(() => {
     setOpen(false);
-    setSearchQuery("");
+    setSearchQuery('');
   }, [setOpen]);
 
   return (
@@ -49,7 +43,7 @@ const SearchDialog = ({
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => setSearchQuery('')}
                   className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full p-0"
                 >
                   <XCircle className="w-4 h-4" />
@@ -74,17 +68,14 @@ const SearchDialog = ({
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-40">
                 <Loader2 className="w-6 h-6 animate-spin text-primary mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Searching for "{debouncedQuery}"...
-                </p>
+                <p className="text-sm text-muted-foreground">Searching for "{debouncedQuery}"...</p>
               </div>
             ) : searchResults && searchResults.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold">Search Results</h3>
                   <span className="text-sm text-muted-foreground">
-                    {searchResults.length}{" "}
-                    {searchResults.length === 1 ? "result" : "results"}
+                    {searchResults.length} {searchResults.length === 1 ? 'result' : 'results'}
                   </span>
                 </div>
 
@@ -101,8 +92,8 @@ const SearchDialog = ({
                 </div>
                 <h3 className="text-lg font-semibold mb-2">No results found</h3>
                 <p className="text-sm text-muted-foreground max-w-md">
-                  We couldn't find anything for "{debouncedQuery}". Try
-                  searching with different keywords.
+                  We couldn't find anything for "{debouncedQuery}". Try searching with different
+                  keywords.
                 </p>
               </div>
             ) : (

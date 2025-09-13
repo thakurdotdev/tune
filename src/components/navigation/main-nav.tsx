@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React from "react";
-import Link from "next/link";
+import React from 'react';
+import Link from 'next/link';
 
-import type { MegaMenu } from "@/types/music";
+import type { MegaMenu } from '@/types/music';
 
-import { cn, getHref } from "@/lib/utils";
+import { cn, getHref } from '@/lib/utils';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -14,8 +14,8 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from "../ui/navigation-menu";
-import { Separator } from "../ui/separator";
+} from '../ui/navigation-menu';
+import { Separator } from '../ui/separator';
 
 type MainNavProps = {
   megaMenu: MegaMenu;
@@ -46,11 +46,7 @@ export function MainNav({ className, megaMenu }: MainNavProps) {
                   <ListItem
                     key={name}
                     title={name}
-                    href={
-                      url.includes("song")
-                        ? getHref(url, "song")
-                        : getHref(url, "album")
-                    }
+                    href={url.includes('song') ? getHref(url, 'song') : getHref(url, 'album')}
                   >
                     {name}
                   </ListItem>
@@ -61,11 +57,7 @@ export function MainNav({ className, megaMenu }: MainNavProps) {
                 <h4 className="font-heading text-2xl">Top Playlist</h4>
 
                 {megaMenu.top_playlists.map(({ name, url }) => (
-                  <ListItem
-                    key={name}
-                    title={name}
-                    href={getHref(url, "playlist")}
-                  >
+                  <ListItem key={name} title={name} href={getHref(url, 'playlist')}>
                     {name}
                   </ListItem>
                 ))}
@@ -75,11 +67,7 @@ export function MainNav({ className, megaMenu }: MainNavProps) {
                 <h4 className="font-heading text-2xl">Top Artists</h4>
 
                 {megaMenu.top_artists.map(({ name, url }) => (
-                  <ListItem
-                    key={name}
-                    title={name}
-                    href={getHref(url, "artist")}
-                  >
+                  <ListItem key={name} title={name} href={getHref(url, 'artist')}>
                     {name}
                   </ListItem>
                 ))}
@@ -110,8 +98,8 @@ const ListItem = React.forwardRef<
       <Link
         ref={ref}
         className={cn(
-          "block space-y-1 rounded-md py-1.5 text-muted-foreground duration-150 hover:text-secondary-foreground",
-          className,
+          'block space-y-1 rounded-md py-1.5 text-muted-foreground duration-150 hover:text-secondary-foreground',
+          className
         )}
         {...props}
       >
@@ -121,4 +109,4 @@ const ListItem = React.forwardRef<
   );
 });
 
-ListItem.displayName = "ListItem";
+ListItem.displayName = 'ListItem';

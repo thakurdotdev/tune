@@ -1,4 +1,4 @@
-import { Song } from "./song";
+import { Song } from './song';
 
 export interface Album {
   album_id?: string;
@@ -151,7 +151,7 @@ export interface MusicHistoryParams {
   limit: number;
   searchQuery?: string;
   sortBy?: string;
-  sortOrder?: "ASC" | "DESC";
+  sortOrder?: 'ASC' | 'DESC';
 }
 
 export interface MusicHistoryResponse {
@@ -174,7 +174,7 @@ export interface PlaybackState {
   queue: Song[];
   currentIndex: number;
   shuffle: boolean;
-  repeat: "none" | "one" | "all";
+  repeat: 'none' | 'one' | 'all';
 }
 
 export interface SleepTimer {
@@ -188,7 +188,7 @@ export interface MediaSessionState {
   isActive: boolean;
 }
 
-export type AudioQuality = "low" | "medium" | "high" | "highest";
+export type AudioQuality = 'low' | 'medium' | 'high' | 'highest';
 
 export interface PlayerConfig {
   audioQuality: AudioQuality;
@@ -198,18 +198,18 @@ export interface PlayerConfig {
 }
 
 export type Type =
-  | "artist"
-  | "album"
-  | "playlist"
-  | "radio"
-  | "radio_station"
-  | "song"
-  | "channel"
-  | "mix"
-  | "show"
-  | "episode"
-  | "season"
-  | "label";
+  | 'artist'
+  | 'album'
+  | 'playlist'
+  | 'radio'
+  | 'radio_station'
+  | 'song'
+  | 'channel'
+  | 'mix'
+  | 'show'
+  | 'episode'
+  | 'season'
+  | 'label';
 
 export type MegaMenu = {
   top_artists: MegaMenuItem[];

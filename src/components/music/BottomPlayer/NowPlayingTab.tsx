@@ -1,10 +1,10 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SheetTitle } from "@/components/ui/sheet";
-import { DEFAULT_IMAGE } from "@/constants";
-import { useCurrentIndex, useQueue } from "@/stores/playbackStore";
-import { Music } from "lucide-react";
-import { memo, useMemo } from "react";
-import { MusicControls, ProgressBarMusic, VolumeControl } from "../common";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SheetTitle } from '@/components/ui/sheet';
+import { DEFAULT_IMAGE } from '@/constants';
+import { useCurrentIndex, useQueue } from '@/stores/playbackStore';
+import { Music } from 'lucide-react';
+import { memo, useMemo } from 'react';
+import { MusicControls, ProgressBarMusic, VolumeControl } from '../common';
 
 const NowPlayingTab = memo(() => {
   const queue = useQueue();
@@ -12,18 +12,15 @@ const NowPlayingTab = memo(() => {
 
   const currentSong = queue[currentIndex] || null;
 
-  const songImage = useMemo(
-    () => currentSong?.image?.[2]?.link || DEFAULT_IMAGE,
-    [currentSong],
-  );
+  const songImage = useMemo(() => currentSong?.image?.[2]?.link || DEFAULT_IMAGE, [currentSong]);
 
   const artistName = useMemo(
     () =>
       currentSong?.artist_map?.artists
         ?.slice(0, 3)
         ?.map((artist) => artist.name)
-        .join(", ") || "",
-    [currentSong],
+        .join(', ') || '',
+    [currentSong]
   );
 
   if (!currentSong) {
@@ -60,9 +57,7 @@ const NowPlayingTab = memo(() => {
           <SheetTitle className="text-xl sm:text-2xl mb-1 line-clamp-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
             {currentSong.name}
           </SheetTitle>
-          <p className="text-sm sm:text-base text-muted-foreground line-clamp-1">
-            {artistName}
-          </p>
+          <p className="text-sm sm:text-base text-muted-foreground line-clamp-1">{artistName}</p>
         </div>
       </div>
 
@@ -78,5 +73,5 @@ const NowPlayingTab = memo(() => {
   );
 });
 
-NowPlayingTab.displayName = "NowPlayingTab";
+NowPlayingTab.displayName = 'NowPlayingTab';
 export default NowPlayingTab;

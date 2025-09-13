@@ -16,7 +16,6 @@
 }
 
 @keyframes wave {
-
   0%,
   100% {
     transform: scaleY(0.5);
@@ -39,7 +38,6 @@
 }
 
 @keyframes wave {
-
   0%,
   100% {
     transform: scaleY(0.3);
@@ -184,14 +182,19 @@
   right: 0;
   bottom: 0;
   width: 40px; /* Increased from 20px for better visibility */
-  background: linear-gradient(to left, hsl(var(--background)) 0%, hsl(var(--background) / 0.8) 50%, transparent 100%);
+  background: linear-gradient(
+    to left,
+    hsl(var(--background)) 0%,
+    hsl(var(--background) / 0.8) 50%,
+    transparent 100%
+  );
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: 2; /* Increased z-index */
 }
 
-.scrollable-section[data-scrollable="true"]::before {
+.scrollable-section[data-scrollable='true']::before {
   opacity: 1;
 }
 
@@ -203,14 +206,19 @@
   left: 0;
   bottom: 0;
   width: 40px;
-  background: linear-gradient(to right, hsl(var(--background)) 0%, hsl(var(--background) / 0.8) 50%, transparent 100%);
+  background: linear-gradient(
+    to right,
+    hsl(var(--background)) 0%,
+    hsl(var(--background) / 0.8) 50%,
+    transparent 100%
+  );
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: 2;
 }
 
-.scrollable-section[data-scrollable="true"]::after {
+.scrollable-section[data-scrollable='true']::after {
   opacity: 0.7; /* Slightly less visible than right fade */
 }
 
@@ -242,10 +250,10 @@
 }
 
 /* Cursor indicators */
-.scrollable-section[data-scrollable="true"] {
+.scrollable-section[data-scrollable='true'] {
   cursor: grab;
 }
 
-.scrollable-section[data-scrollable="true"]:active {
+.scrollable-section[data-scrollable='true']:active {
   cursor: grabbing;
 }

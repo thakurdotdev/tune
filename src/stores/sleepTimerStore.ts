@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { subscribeWithSelector } from "zustand/middleware";
-import type { SleepTimer } from "../types/music";
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+import type { SleepTimer } from '../types/music';
 
 interface SleepTimerStore extends SleepTimer {
   // Private timer reference
@@ -110,18 +110,18 @@ export const useSleepTimerStore = create<SleepTimerStore>()(
       const seconds = timeRemaining % 60;
 
       if (hours > 0) {
-        return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
           .toString()
-          .padStart(2, "0")}`;
+          .padStart(2, '0')}`;
       }
-      return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     },
 
     shouldStopPlayback: () => {
       const { isActive, timeRemaining, songsRemaining } = get();
       return isActive && timeRemaining === 0 && songsRemaining === 0;
     },
-  })),
+  }))
 );
 
 // Cleanup function to call on app unmount

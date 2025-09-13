@@ -1,29 +1,23 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Settings, Music, Volume2, Shuffle, Timer } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import React from 'react';
+import { Settings, Music, Volume2, Shuffle, Timer } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { useConfigStore } from "@/stores/configStore";
-import type { AudioQuality } from "@/types/music";
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { useConfigStore } from '@/stores/configStore';
+import type { AudioQuality } from '@/types/music';
 
 const audioQualityOptions: {
   value: AudioQuality;
@@ -32,28 +26,28 @@ const audioQualityOptions: {
   bitrate: string;
 }[] = [
   {
-    value: "low",
-    label: "Low",
-    description: "Good for saving data",
-    bitrate: "96 kbps",
+    value: 'low',
+    label: 'Low',
+    description: 'Good for saving data',
+    bitrate: '96 kbps',
   },
   {
-    value: "medium",
-    label: "Medium",
-    description: "Balanced quality",
-    bitrate: "160 kbps",
+    value: 'medium',
+    label: 'Medium',
+    description: 'Balanced quality',
+    bitrate: '160 kbps',
   },
   {
-    value: "high",
-    label: "High",
-    description: "High quality audio",
-    bitrate: "320 kbps",
+    value: 'high',
+    label: 'High',
+    description: 'High quality audio',
+    bitrate: '320 kbps',
   },
   {
-    value: "highest",
-    label: "Highest",
-    description: "Best available quality",
-    bitrate: "Lossless",
+    value: 'highest',
+    label: 'Highest',
+    description: 'Best available quality',
+    bitrate: 'Lossless',
   },
 ];
 
@@ -67,9 +61,7 @@ export default function SettingsPage() {
   // Actions
   const setAudioQuality = useConfigStore((state) => state.setAudioQuality);
   const setPreloadNext = useConfigStore((state) => state.setPreloadNext);
-  const setGaplessPlayback = useConfigStore(
-    (state) => state.setGaplessPlayback,
-  );
+  const setGaplessPlayback = useConfigStore((state) => state.setGaplessPlayback);
   const setCrossfade = useConfigStore((state) => state.setCrossfade);
   const resetToDefaults = useConfigStore((state) => state.resetToDefaults);
 
@@ -78,7 +70,7 @@ export default function SettingsPage() {
   };
 
   const formatCrossfadeTime = (ms: number) => {
-    if (ms === 0) return "Disabled";
+    if (ms === 0) return 'Disabled';
     if (ms < 1000) return `${ms}ms`;
     return `${(ms / 1000).toFixed(1)}s`;
   };
@@ -93,12 +85,10 @@ export default function SettingsPage() {
               <Settings className="w-8 h-8 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-4xl font-bold tracking-tight text-foreground mb-3">
-                Settings
-              </h1>
+              <h1 className="text-4xl font-bold tracking-tight text-foreground mb-3">Settings</h1>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Customize your music playback experience with advanced audio
-                settings and playback features
+                Customize your music playback experience with advanced audio settings and playback
+                features
               </p>
             </div>
           </div>
@@ -114,9 +104,7 @@ export default function SettingsPage() {
                   <Volume2 className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <CardTitle className="text-xl font-semibold">
-                    Audio Quality
-                  </CardTitle>
+                  <CardTitle className="text-xl font-semibold">Audio Quality</CardTitle>
                   <CardDescription className="text-base mt-1">
                     Choose your preferred streaming quality
                   </CardDescription>
@@ -130,9 +118,7 @@ export default function SettingsPage() {
                 </Label>
                 <Select
                   value={audioQuality}
-                  onValueChange={(value: AudioQuality) =>
-                    setAudioQuality(value)
-                  }
+                  onValueChange={(value: AudioQuality) => setAudioQuality(value)}
                 >
                   <SelectTrigger className="h-12">
                     <SelectValue />
@@ -147,10 +133,7 @@ export default function SettingsPage() {
                               {option.description}
                             </span>
                           </div>
-                          <Badge
-                            variant="secondary"
-                            className="ml-3 flex-shrink-0"
-                          >
+                          <Badge variant="secondary" className="ml-3 flex-shrink-0">
                             {option.bitrate}
                           </Badge>
                         </div>
@@ -161,8 +144,7 @@ export default function SettingsPage() {
               </div>
               <div className="p-3 rounded-lg bg-muted/30 border border-muted/50">
                 <p className="text-sm text-muted-foreground">
-                  Higher quality settings require more bandwidth and storage
-                  space
+                  Higher quality settings require more bandwidth and storage space
                 </p>
               </div>
             </CardContent>
@@ -176,9 +158,7 @@ export default function SettingsPage() {
                   <Music className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <CardTitle className="text-xl font-semibold">
-                    Playback Features
-                  </CardTitle>
+                  <CardTitle className="text-xl font-semibold">Playback Features</CardTitle>
                   <CardDescription className="text-base mt-1">
                     Advanced playback enhancements
                   </CardDescription>
@@ -192,8 +172,7 @@ export default function SettingsPage() {
                     Preload Next Track
                   </Label>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Loads the next song in advance for seamless playback
-                    transitions
+                    Loads the next song in advance for seamless playback transitions
                   </p>
                 </div>
                 <Switch
@@ -208,15 +187,11 @@ export default function SettingsPage() {
 
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 space-y-1">
-                  <Label
-                    htmlFor="gapless-playback"
-                    className="text-sm font-medium"
-                  >
+                  <Label htmlFor="gapless-playback" className="text-sm font-medium">
                     Gapless Playback
                   </Label>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Removes silence between tracks for continuous listening
-                    experience
+                    Removes silence between tracks for continuous listening experience
                   </p>
                 </div>
                 <Switch
@@ -237,9 +212,7 @@ export default function SettingsPage() {
                   <Shuffle className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <CardTitle className="text-xl font-semibold">
-                    Crossfade
-                  </CardTitle>
+                  <CardTitle className="text-xl font-semibold">Crossfade</CardTitle>
                   <CardDescription className="text-base mt-1">
                     Smooth audio transitions between tracks
                   </CardDescription>
@@ -253,7 +226,7 @@ export default function SettingsPage() {
                     Crossfade Duration
                   </Label>
                   <Badge
-                    variant={crossfade > 0 ? "default" : "secondary"}
+                    variant={crossfade > 0 ? 'default' : 'secondary'}
                     className="text-sm px-3 py-1"
                   >
                     {formatCrossfadeTime(crossfade)}
@@ -296,9 +269,7 @@ export default function SettingsPage() {
           {/* Reset Section */}
           <Card className="hover:shadow-lg transition-all duration-200 bg-card/30 backdrop-blur-sm border-dashed border-2 border-muted/50">
             <CardHeader className="pb-4">
-              <CardTitle className="text-xl font-semibold">
-                Reset Settings
-              </CardTitle>
+              <CardTitle className="text-xl font-semibold">Reset Settings</CardTitle>
               <CardDescription className="text-base">
                 Restore all settings to their default values
               </CardDescription>
@@ -317,9 +288,7 @@ export default function SettingsPage() {
           {/* Current Configuration Summary */}
           <Card className="hover:shadow-lg transition-all duration-200 border-0 bg-gradient-to-br from-primary/5 to-primary/10 backdrop-blur-sm">
             <CardHeader className="pb-4">
-              <CardTitle className="text-xl font-semibold">
-                Current Configuration
-              </CardTitle>
+              <CardTitle className="text-xl font-semibold">Current Configuration</CardTitle>
               <CardDescription className="text-base">
                 Overview of your active settings
               </CardDescription>
@@ -330,16 +299,14 @@ export default function SettingsPage() {
                   <p className="font-medium text-muted-foreground uppercase tracking-wider text-xs">
                     Quality
                   </p>
-                  <p className="text-lg font-semibold capitalize text-foreground">
-                    {audioQuality}
-                  </p>
+                  <p className="text-lg font-semibold capitalize text-foreground">{audioQuality}</p>
                 </div>
                 <div className="space-y-2">
                   <p className="font-medium text-muted-foreground uppercase tracking-wider text-xs">
                     Preload
                   </p>
                   <p className="text-lg font-semibold text-foreground">
-                    {preloadNext ? "Enabled" : "Disabled"}
+                    {preloadNext ? 'Enabled' : 'Disabled'}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -347,7 +314,7 @@ export default function SettingsPage() {
                     Gapless
                   </p>
                   <p className="text-lg font-semibold text-foreground">
-                    {gaplessPlayback ? "Enabled" : "Disabled"}
+                    {gaplessPlayback ? 'Enabled' : 'Disabled'}
                   </p>
                 </div>
                 <div className="space-y-2">

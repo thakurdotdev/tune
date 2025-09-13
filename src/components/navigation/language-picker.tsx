@@ -1,38 +1,38 @@
-"use client";
+'use client';
 
-import { ChevronDown, Languages } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
+import { ChevronDown, Languages } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
+import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
+} from '../ui/dropdown-menu';
+import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 
 export const languages = [
-  "Hindi",
-  "English",
-  "Punjabi",
-  "Tamil",
-  "Telugu",
-  "Marathi",
-  "Gujarati",
-  "Bengali",
-  "Kannada",
-  "Bhojpuri",
-  "Malayalam",
-  "Urdu",
-  "Haryanvi",
-  "Rajasthani",
-  "Odia",
-  "Assamese",
+  'Hindi',
+  'English',
+  'Punjabi',
+  'Tamil',
+  'Telugu',
+  'Marathi',
+  'Gujarati',
+  'Bengali',
+  'Kannada',
+  'Bhojpuri',
+  'Malayalam',
+  'Urdu',
+  'Haryanvi',
+  'Rajasthani',
+  'Odia',
+  'Assamese',
 ] as const;
 
 export type Language = Lowercase<(typeof languages)[number]>;
@@ -41,13 +41,11 @@ export function LanguagePicker() {
   const router = useRouter();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([
-    "hindi",
-  ]);
+  const [selectedLanguages, setSelectedLanguages] = useState<Language[]>(['hindi']);
 
   function updateLanguages() {
-    toast.success("Preferences updated!", {
-      description: "Your language preferences have been updated.",
+    toast.success('Preferences updated!', {
+      description: 'Your language preferences have been updated.',
     });
   }
 
@@ -62,10 +60,7 @@ export function LanguagePicker() {
           <Languages className="aspect-square h-5 lg:h-4" />
           <span className="hidden lg:inline-block">Languages</span>
           <ChevronDown
-            className={cn(
-              "hidden size-4 duration-300 lg:inline-block",
-              isOpen && "rotate-180",
-            )}
+            className={cn('hidden size-4 duration-300 lg:inline-block', isOpen && 'rotate-180')}
           />
         </Button>
       </DropdownMenuTrigger>
@@ -88,11 +83,7 @@ export function LanguagePicker() {
           className="grid grid-cols-2 border-y py-2 w-full"
         >
           {languages.map((lang) => (
-            <ToggleGroupItem
-              key={lang}
-              value={lang.toLowerCase()}
-              variant="outline"
-            >
+            <ToggleGroupItem key={lang} value={lang.toLowerCase()} variant="outline">
               {lang}
             </ToggleGroupItem>
           ))}

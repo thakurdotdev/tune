@@ -1,7 +1,7 @@
-import { Input } from "@/components/ui/input";
-import { Command, Search } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import SearchDialog from "./SearchDialog";
+import { Input } from '@/components/ui/input';
+import { Command, Search } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import SearchDialog from './SearchDialog';
 
 const MusicCommand = () => {
   const [open, setOpen] = useState(false);
@@ -12,14 +12,14 @@ const MusicCommand = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         toggleOpen();
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [toggleOpen]);
 
   return (
@@ -30,7 +30,7 @@ const MusicCommand = () => {
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
+          if (e.key === 'Enter' || e.key === ' ') {
             toggleOpen();
           }
         }}

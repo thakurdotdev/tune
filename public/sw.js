@@ -1,14 +1,9 @@
 // Service Worker for Tune Music App
-const CACHE_NAME = "tune-music-v1";
-const STATIC_CACHE_URLS = [
-  "/",
-  "/manifest.json",
-  "/logo.png",
-  "/_next/static/css/app/globals.css",
-];
+const CACHE_NAME = 'tune-music-v1';
+const STATIC_CACHE_URLS = ['/', '/manifest.json', '/logo.png', '/_next/static/css/app/globals.css'];
 
 // Install event - cache static resources
-self.addEventListener("install", (event) => {
+self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
@@ -17,12 +12,12 @@ self.addEventListener("install", (event) => {
       })
       .then(() => {
         self.skipWaiting();
-      }),
+      })
   );
 });
 
 // Activate event - clean up old caches
-self.addEventListener("activate", (event) => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
@@ -32,17 +27,17 @@ self.addEventListener("activate", (event) => {
             if (cacheName !== CACHE_NAME) {
               return caches.delete(cacheName);
             }
-          }),
+          })
         );
       })
       .then(() => {
         self.clients.claim();
-      }),
+      })
   );
 });
 
 // Fetch event - serve from cache when offline
-self.addEventListener("fetch", (event) => {
+self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches
       .match(event.request)
@@ -52,49 +47,49 @@ self.addEventListener("fetch", (event) => {
       })
       .catch(() => {
         // If both cache and network fail, return offline page for navigation requests
-        if (event.request.destination === "document") {
-          return caches.match("/");
+        if (event.request.destination === 'document') {
+          return caches.match('/');
         }
-      }),
+      })
   );
 });
 
 // Background sync for music playback
-self.addEventListener("sync", (event) => {
-  if (event.tag === "background-sync") {
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'background-sync') {
     event.waitUntil(doBackgroundSync());
   }
 });
 
 function doBackgroundSync() {
   // Handle background music synchronization
-  return fetch("/api/sync-playback", {
-    method: "POST",
+  return fetch('/api/sync-playback', {
+    method: 'POST',
     body: JSON.stringify({
-      action: "sync",
+      action: 'sync',
       timestamp: Date.now(),
     }),
   });
 }
 
 // Message handling for music controls
-self.addEventListener("message", (event) => {
+self.addEventListener('message', (event) => {
   const { type, data } = event.data;
 
   switch (type) {
-    case "SKIP_WAITING":
+    case 'SKIP_WAITING':
       self.skipWaiting();
       break;
-    case "PLAY_MUSIC":
+    case 'PLAY_MUSIC':
       handlePlayMusic(data);
       break;
-    case "PAUSE_MUSIC":
+    case 'PAUSE_MUSIC':
       handlePauseMusic(data);
       break;
-    case "NEXT_TRACK":
+    case 'NEXT_TRACK':
       handleNextTrack(data);
       break;
-    case "PREVIOUS_TRACK":
+    case 'PREVIOUS_TRACK':
       handlePreviousTrack(data);
       break;
   }
@@ -106,8 +101,8 @@ function handlePlayMusic(data) {
   self.clients.matchAll().then((clients) => {
     clients.forEach((client) => {
       client.postMessage({
-        type: "MUSIC_CONTROL",
-        action: "play",
+        type: 'MUSIC_CONTROL',
+        action: 'play',
         data: data,
       });
     });
@@ -118,8 +113,8 @@ function handlePauseMusic(data) {
   self.clients.matchAll().then((clients) => {
     clients.forEach((client) => {
       client.postMessage({
-        type: "MUSIC_CONTROL",
-        action: "pause",
+        type: 'MUSIC_CONTROL',
+        action: 'pause',
         data: data,
       });
     });
@@ -130,8 +125,8 @@ function handleNextTrack(data) {
   self.clients.matchAll().then((clients) => {
     clients.forEach((client) => {
       client.postMessage({
-        type: "MUSIC_CONTROL",
-        action: "next",
+        type: 'MUSIC_CONTROL',
+        action: 'next',
         data: data,
       });
     });
@@ -142,8 +137,8 @@ function handlePreviousTrack(data) {
   self.clients.matchAll().then((clients) => {
     clients.forEach((client) => {
       client.postMessage({
-        type: "MUSIC_CONTROL",
-        action: "previous",
+        type: 'MUSIC_CONTROL',
+        action: 'previous',
         data: data,
       });
     });
@@ -151,24 +146,24 @@ function handlePreviousTrack(data) {
 }
 
 // Push notifications for music updates
-self.addEventListener("push", (event) => {
+self.addEventListener('push', (event) => {
   if (event.data) {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: "/logo.png",
-      badge: "/logo.png",
-      tag: "music-notification",
+      icon: '/logo.png',
+      badge: '/logo.png',
+      tag: 'music-notification',
       actions: [
         {
-          action: "play",
-          title: "Play",
-          icon: "/logo.png",
+          action: 'play',
+          title: 'Play',
+          icon: '/logo.png',
         },
         {
-          action: "skip",
-          title: "Skip",
-          icon: "/logo.png",
+          action: 'skip',
+          title: 'Skip',
+          icon: '/logo.png',
         },
       ],
     };
@@ -178,29 +173,29 @@ self.addEventListener("push", (event) => {
 });
 
 // Handle notification clicks
-self.addEventListener("notificationclick", (event) => {
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  if (event.action === "play") {
+  if (event.action === 'play') {
     // Handle play action
     self.clients.matchAll().then((clients) => {
       if (clients.length > 0) {
         clients[0].postMessage({
-          type: "MUSIC_CONTROL",
-          action: "play",
+          type: 'MUSIC_CONTROL',
+          action: 'play',
         });
         clients[0].focus();
       } else {
-        self.clients.openWindow("/");
+        self.clients.openWindow('/');
       }
     });
-  } else if (event.action === "skip") {
+  } else if (event.action === 'skip') {
     // Handle skip action
     self.clients.matchAll().then((clients) => {
       if (clients.length > 0) {
         clients[0].postMessage({
-          type: "MUSIC_CONTROL",
-          action: "next",
+          type: 'MUSIC_CONTROL',
+          action: 'next',
         });
       }
     });
@@ -211,9 +206,9 @@ self.addEventListener("notificationclick", (event) => {
         if (clients.length > 0) {
           clients[0].focus();
         } else {
-          self.clients.openWindow("/");
+          self.clients.openWindow('/');
         }
-      }),
+      })
     );
   }
 });

@@ -1,28 +1,19 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DEFAULT_IMAGE } from "@/constants";
-import { Song } from "@/types/song";
-import { memo, useMemo } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_IMAGE } from '@/constants';
+import { Song } from '@/types/song';
+import { memo, useMemo } from 'react';
 
 const SongInfo = memo(
-  ({
-    currentSong,
-    onOpenSheet,
-  }: {
-    currentSong: Song;
-    onOpenSheet: () => void;
-  }) => {
-    const songImage = useMemo(
-      () => currentSong?.image?.[2]?.link || DEFAULT_IMAGE,
-      [currentSong],
-    );
+  ({ currentSong, onOpenSheet }: { currentSong: Song; onOpenSheet: () => void }) => {
+    const songImage = useMemo(() => currentSong?.image?.[2]?.link || DEFAULT_IMAGE, [currentSong]);
 
     const artistName = useMemo(
       () =>
         currentSong?.artist_map?.artists
           ?.slice(0, 3)
           ?.map((artist) => artist.name)
-          .join(", ") || "",
-      [currentSong],
+          .join(', ') || '',
+      [currentSong]
     );
 
     return (
@@ -43,8 +34,8 @@ const SongInfo = memo(
         </div>
       </div>
     );
-  },
+  }
 );
 
-SongInfo.displayName = "SongInfo";
+SongInfo.displayName = 'SongInfo';
 export default SongInfo;

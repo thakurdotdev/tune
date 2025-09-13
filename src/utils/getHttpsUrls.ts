@@ -1,19 +1,19 @@
-import { DEFAULT_IMAGE } from "@/constants";
-import { Song, Artist, ImageQuality, DownloadQuality } from "@/types/song";
+import { DEFAULT_IMAGE } from '@/constants';
+import { Song, Artist, ImageQuality, DownloadQuality } from '@/types/song';
 
 /**
  * Converts any HTTP URL to HTTPS URL
  */
 export const convertToHttps = (url: string): string => {
   if (!url) return url;
-  return url.startsWith("http://") ? url.replace("http://", "https://") : url;
+  return url.startsWith('http://') ? url.replace('http://', 'https://') : url;
 };
 
 /**
  * Ensures all ImageQuality links use HTTPS
  */
 const ensureHttpsForImages = (
-  images?: ImageQuality[] | ImageQuality,
+  images?: ImageQuality[] | ImageQuality
 ): ImageQuality[] | ImageQuality => {
   if (!images) return [];
 
@@ -39,23 +39,21 @@ const ensureHttpsForArtists = (artists?: Artist[]): Artist[] => {
   if (!artists) return [];
   return artists.map((artist) => ({
     ...artist,
-    url: artist.url ? convertToHttps(artist.url) : "",
+    url: artist.url ? convertToHttps(artist.url) : '',
     image: artist.image
       ? ensureHttpsForImages(artist.image)
-      : [{ quality: "", link: DEFAULT_IMAGE }],
+      : [{ quality: '', link: DEFAULT_IMAGE }],
   }));
 };
 
 /**
  * Ensures all DownloadQuality links use HTTPS
  */
-const ensureHttpsForDownloadUrls = (
-  downloadUrls?: DownloadQuality[],
-): DownloadQuality[] => {
+const ensureHttpsForDownloadUrls = (downloadUrls?: DownloadQuality[]): DownloadQuality[] => {
   if (!downloadUrls) return [];
   return downloadUrls.map((item) => ({
     ...item,
-    link: item.link ? convertToHttps(item.link) : "",
+    link: item.link ? convertToHttps(item.link) : '',
   }));
 };
 
@@ -70,35 +68,30 @@ export const ensureHttpsForSongUrls = (song: Song): Song => {
   if (song.url) securedSong.url = convertToHttps(song.url);
   if (song.image) {
     const processedImage = ensureHttpsForImages(song.image);
-    securedSong.image = Array.isArray(processedImage)
-      ? processedImage
-      : [processedImage];
+    securedSong.image = Array.isArray(processedImage) ? processedImage : [processedImage];
   }
 
   // Handle artist_map if it exists
   if (song.artist_map) {
     securedSong.artist_map = { ...song.artist_map };
     if (song.artist_map.artists) {
-      securedSong.artist_map.artists = ensureHttpsForArtists(
-        song.artist_map.artists,
-      );
+      securedSong.artist_map.artists = ensureHttpsForArtists(song.artist_map.artists);
     }
     if (song.artist_map.featured_artists) {
       securedSong.artist_map.featured_artists = ensureHttpsForArtists(
-        song.artist_map.featured_artists,
+        song.artist_map.featured_artists
       );
     }
     if (song.artist_map.primary_artists) {
       securedSong.artist_map.primary_artists = ensureHttpsForArtists(
-        song.artist_map.primary_artists,
+        song.artist_map.primary_artists
       );
     }
   }
 
   if (song.album_url) securedSong.album_url = convertToHttps(song.album_url);
   if (song.label_url) securedSong.label_url = convertToHttps(song.label_url);
-  if (song.download_url)
-    securedSong.download_url = ensureHttpsForDownloadUrls(song.download_url);
+  if (song.download_url) securedSong.download_url = ensureHttpsForDownloadUrls(song.download_url);
 
   return securedSong;
 };
@@ -113,15 +106,12 @@ export const ensureHttpsForAlbumUrls = (album: any): any => {
 
   if (album.url) securedAlbum.url = convertToHttps(album.url);
   if (album.image) securedAlbum.image = ensureHttpsForImages(album.image);
-  if (album.artists)
-    securedAlbum.artists = ensureHttpsForArtists(album.artists);
+  if (album.artists) securedAlbum.artists = ensureHttpsForArtists(album.artists);
 
   if (album.artist) {
     securedAlbum.artist = { ...album.artist };
-    if (album.artist.url)
-      securedAlbum.artist.url = convertToHttps(album.artist.url);
-    if (album.artist.image)
-      securedAlbum.artist.image = ensureHttpsForImages(album.artist.image);
+    if (album.artist.url) securedAlbum.artist.url = convertToHttps(album.artist.url);
+    if (album.artist.image) securedAlbum.artist.image = ensureHttpsForImages(album.artist.image);
   }
 
   return securedAlbum;
@@ -143,14 +133,12 @@ export const ensureHttpsForArtistUrls = (artist: any): any => {
   }
 
   if (Array.isArray(artist.albums)) {
-    securedArtist.albums = artist.albums.map((album: any) =>
-      ensureHttpsForAlbumUrls(album),
-    );
+    securedArtist.albums = artist.albums.map((album: any) => ensureHttpsForAlbumUrls(album));
   }
 
   if (Array.isArray(artist.similar_artists)) {
-    securedArtist.similar_artists = artist.similar_artists.map(
-      (similarArtist: any) => ensureHttpsForArtistUrls(similarArtist),
+    securedArtist.similar_artists = artist.similar_artists.map((similarArtist: any) =>
+      ensureHttpsForArtistUrls(similarArtist)
     );
   }
 
@@ -171,8 +159,8 @@ export const ensureHttpsForPlaylistUrls = (playlist: any): any => {
     securedPlaylist.image = Array.isArray(playlist.image)
       ? ensureHttpsForImages(playlist.image)
       : playlist.image
-      ? convertToHttps(playlist.image)
-      : DEFAULT_IMAGE;
+        ? convertToHttps(playlist.image)
+        : DEFAULT_IMAGE;
   }
 
   if (playlist.artists) {

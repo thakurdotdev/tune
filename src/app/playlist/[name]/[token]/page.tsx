@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { FullSongCard } from "@/components/music/Cards";
-import DetailPageSkeleton from "@/components/DetailPageSkeleton";
-import { usePlaylistDetails } from "@/queries/useMusic";
-import { use } from "react";
+import { FullSongCard } from '@/components/music/Cards';
+import DetailPageSkeleton from '@/components/DetailPageSkeleton';
+import { usePlaylistDetails } from '@/queries/useMusic';
+import { use } from 'react';
 
 const Playlist = ({ params }: { params: Promise<{ token: string }> }) => {
   const { token } = use(params);
@@ -23,7 +23,7 @@ const Playlist = ({ params }: { params: Promise<{ token: string }> }) => {
         className="w-full h-[250px] sm:h-[300px] rounded-2xl"
         style={{
           backgroundImage: `url('${bgUrl}')`,
-          backgroundSize: "cover",
+          backgroundSize: 'cover',
         }}
       >
         <div className="rounded-2xl w-full h-full bg-black/60 backdrop-blur-sm flex flex-col transition-all">
@@ -40,9 +40,7 @@ const Playlist = ({ params }: { params: Promise<{ token: string }> }) => {
                   {playlistData?.header_desc}
                 </p>
                 <div className="mt-5 flex flex-col">
-                  <p className="text-sm text-white/80">
-                    {playlistData?.list_count} songs
-                  </p>
+                  <p className="text-sm text-white/80">{playlistData?.list_count} songs</p>
                   <p className="text-sm text-white/80">
                     {formatCount(playlistData?.follower_count)} followers
                   </p>
@@ -68,15 +66,15 @@ const Playlist = ({ params }: { params: Promise<{ token: string }> }) => {
 
 function formatCount(count?: number) {
   if (count === undefined || count === null) {
-    return "N/A";
+    return 'N/A';
   }
 
   if (count >= 1000000000) {
-    return (count / 1000000000).toFixed(1) + "B";
+    return (count / 1000000000).toFixed(1) + 'B';
   } else if (count >= 1000000) {
-    return (count / 1000000).toFixed(1) + "M";
+    return (count / 1000000).toFixed(1) + 'M';
   } else if (count >= 1000) {
-    return (count / 1000).toFixed(1) + "K";
+    return (count / 1000).toFixed(1) + 'K';
   } else {
     return count.toString();
   }

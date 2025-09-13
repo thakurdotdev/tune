@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,9 +9,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useMegaMenu } from "@/queries/useMusic";
-import { useUserStore } from "@/stores/userStore";
+} from '@/components/ui/dropdown-menu';
+import { useMegaMenu } from '@/queries/useMusic';
+import { useUserStore } from '@/stores/userStore';
 import {
   Compass,
   Download,
@@ -27,23 +27,23 @@ import {
   Settings,
   Sun,
   User,
-} from "lucide-react";
-import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import LazyImage from "../LazyImage";
-import MusicCommand from "../music/MusicCommand";
-import { LanguagePicker } from "./language-picker";
-import { MainNav } from "./main-nav";
+} from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import LazyImage from '../LazyImage';
+import MusicCommand from '../music/MusicCommand';
+import { LanguagePicker } from './language-picker';
+import { MainNav } from './main-nav';
 
 const navItems = [
-  { icon: Home, label: "Home", href: "/", isActive: true },
-  { icon: Compass, label: "Discover", href: "/discover" },
-  { icon: Radio, label: "Radio", href: "/radio" },
-  { icon: Library, label: "Library", href: "/library" },
-  { icon: ListMusic, label: "Playlists", href: "/playlists" },
-  { icon: Heart, label: "Liked Songs", href: "/liked" },
-  { icon: History, label: "Recent", href: "/recent" },
+  { icon: Home, label: 'Home', href: '/', isActive: true },
+  { icon: Compass, label: 'Discover', href: '/discover' },
+  { icon: Radio, label: 'Radio', href: '/radio' },
+  { icon: Library, label: 'Library', href: '/library' },
+  { icon: ListMusic, label: 'Playlists', href: '/playlists' },
+  { icon: Heart, label: 'Liked Songs', href: '/liked' },
+  { icon: History, label: 'Recent', href: '/recent' },
 ];
 
 const Navbar = () => {
@@ -53,9 +53,8 @@ const Navbar = () => {
   const logout = useUserStore((state) => state.logout);
   const [mounted, setMounted] = useState(false);
 
-  const {
-    data: megaMenu = { top_artists: [], top_playlists: [], new_releases: [] },
-  } = useMegaMenu();
+  const { data: megaMenu = { top_artists: [], top_playlists: [], new_releases: [] } } =
+    useMegaMenu();
 
   useEffect(() => {
     setMounted(true);
@@ -71,7 +70,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-3">
             <div
               className="flex items-center justify-center w-10 h-10 rounded-full shadow-lg"
-              onClick={() => router.push("/")}
+              onClick={() => router.push('/')}
             >
               <LazyImage
                 src="/logo.png"
@@ -102,14 +101,10 @@ const Navbar = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="w-9 h-9 p-0 hover:bg-muted transition-colors duration-200"
           >
-            {theme === "dark" ? (
-              <Sun className="w-4 h-4" />
-            ) : (
-              <Moon className="w-4 h-4" />
-            )}
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
 
           {/* User Menu */}
@@ -121,12 +116,9 @@ const Navbar = () => {
                   className="relative w-9 h-9 p-0 rounded-full hover:bg-muted transition-colors duration-200"
                 >
                   <Avatar className="w-8 h-8">
-                    <AvatarImage
-                      src={user?.profilepic}
-                      alt={user?.name || "User"}
-                    />
+                    <AvatarImage src={user?.profilepic} alt={user?.name || 'User'} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                      {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -135,10 +127,10 @@ const Navbar = () => {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {user?.name || "Music Lover"}
+                      {user?.name || 'Music Lover'}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email || "user@example.com"}
+                      {user?.email || 'user@example.com'}
                     </p>
                   </div>
                 </DropdownMenuLabel>
@@ -179,7 +171,7 @@ const Navbar = () => {
                 {/* <DropdownMenuSeparator /> */}
 
                 <DropdownMenuItem
-                  onClick={() => router.push("/settings")}
+                  onClick={() => router.push('/settings')}
                   className="flex items-center space-x-2 cursor-pointer"
                 >
                   <Settings className="w-4 h-4" />
@@ -198,7 +190,7 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="default" onClick={() => router.push("/login")}>
+            <Button variant="default" onClick={() => router.push('/login')}>
               Login
             </Button>
           )}

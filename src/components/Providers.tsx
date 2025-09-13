@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
-import { QueryClient } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { ReactNode } from "react";
-import { AudioPlayerProvider } from "react-use-audio-player";
-import BottomPlayer from "./music/BottomPlayer";
-import PlayerProvider from "./PlayerProvider";
-import { Toaster } from "./ui/sonner";
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { ReactNode } from 'react';
+import { AudioPlayerProvider } from 'react-use-audio-player';
+import BottomPlayer from './music/BottomPlayer';
+import PlayerProvider from './PlayerProvider';
+import { Toaster } from './ui/sonner';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -18,7 +18,7 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
-      refetchOnMount: "always",
+      refetchOnMount: 'always',
       retry: 1,
       gcTime: Infinity,
       staleTime: Infinity,
@@ -27,7 +27,7 @@ const queryClient = new QueryClient({
 });
 
 const asyncStoragePersister = createAsyncStoragePersister({
-  storage: typeof window !== "undefined" ? localStorage : undefined,
+  storage: typeof window !== 'undefined' ? localStorage : undefined,
 });
 
 export function Providers({ children }: ProvidersProps) {

@@ -1,7 +1,7 @@
-import { useQueue } from "@/stores/playbackStore";
-import { memo } from "react";
-import { FullSongCard } from "../Cards";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useQueue } from '@/stores/playbackStore';
+import { memo } from 'react';
+import { FullSongCard } from '../Cards';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const QueueTab = memo(() => {
   const queue = useQueue();
@@ -25,5 +25,5 @@ const QueueTab = memo(() => {
   );
 });
 
-QueueTab.displayName = "QueueTab";
+QueueTab.displayName = 'QueueTab';
 export default QueueTab;

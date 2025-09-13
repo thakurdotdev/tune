@@ -1,29 +1,15 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import { useHomePageMusic, useRecentMusic } from "@/queries/useMusic";
-import {
-  Clock,
-  Disc3,
-  Loader2,
-  Music2,
-  Star,
-  TrendingUp,
-  Users,
-} from "lucide-react";
-import React from "react";
-import {
-  AlbumCard,
-  ArtistCard,
-  FullSongCard,
-  PlaylistCard,
-  SongCard,
-} from "./Cards";
-import "./music.css";
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import { useHomePageMusic, useRecentMusic } from '@/queries/useMusic';
+import { Clock, Disc3, Loader2, Music2, Star, TrendingUp, Users } from 'lucide-react';
+import React from 'react';
+import { AlbumCard, ArtistCard, FullSongCard, PlaylistCard, SongCard } from './Cards';
+import './music.css';
 
 const SectionHeader = React.memo(
   ({
@@ -38,7 +24,7 @@ const SectionHeader = React.memo(
     className?: string;
   }) => {
     return (
-      <div className={cn("flex items-start gap-3 mb-4", className)}>
+      <div className={cn('flex items-start gap-3 mb-4', className)}>
         <div className="flex-1 min-w-0">
           <h2 className="text-lg md:text-xl font-semibold tracking-tight text-foreground leading-tight">
             {title}
@@ -46,7 +32,7 @@ const SectionHeader = React.memo(
         </div>
       </div>
     );
-  },
+  }
 );
 
 const LazySection = React.memo(
@@ -64,12 +50,12 @@ const LazySection = React.memo(
     className?: string;
   }) => {
     return (
-      <section className={cn("space-y-3 md:space-y-4", className)}>
+      <section className={cn('space-y-3 md:space-y-4', className)}>
         <SectionHeader title={title} subtitle={subtitle} icon={icon} />
         {children}
       </section>
     );
-  },
+  }
 );
 
 const useWheelScroll = () => {
@@ -81,7 +67,9 @@ const useWheelScroll = () => {
     if (!scrollContainer) return;
 
     const checkScrollable = () => {
-      const viewport = scrollContainer.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+      const viewport = scrollContainer.querySelector(
+        '[data-radix-scroll-area-viewport]'
+      ) as HTMLElement;
       if (viewport) {
         const canScroll = viewport.scrollWidth > viewport.clientWidth;
         setIsScrollable(canScroll);
@@ -90,19 +78,21 @@ const useWheelScroll = () => {
     };
 
     const handleWheel = (e: WheelEvent) => {
-      const viewport = scrollContainer.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+      const viewport = scrollContainer.querySelector(
+        '[data-radix-scroll-area-viewport]'
+      ) as HTMLElement;
       if (!viewport) return;
 
       const canScrollHorizontally = viewport.scrollWidth > viewport.clientWidth;
-      
+
       if (canScrollHorizontally) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         // Calculate scroll amount based on wheel delta with higher multiplier
         // Use deltaX if available (for horizontal scrolling), otherwise use deltaY
         let scrollAmount = 0;
-        
+
         if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
           // Horizontal wheel/trackpad scroll
           scrollAmount = e.deltaX * 3; // Increased from 2 to 3
@@ -110,28 +100,30 @@ const useWheelScroll = () => {
           // Vertical wheel scroll - convert to horizontal with higher sensitivity
           scrollAmount = e.deltaY * 8; // Increased from 4 to 8 for much more responsiveness
         }
-        
+
         // Add momentum for faster scrolling
         if (Math.abs(e.deltaY) > 50) {
           scrollAmount *= 3; // Increased from 2 to 3 for even faster wheel scrolls
         }
-        
+
         // Add acceleration for very fast scrolling
         if (Math.abs(e.deltaY) > 100) {
           scrollAmount *= 2; // Additional multiplier for very fast scrolls
         }
-        
+
         viewport.scrollLeft += scrollAmount;
       }
     };
 
     // Add keyboard navigation support
     const handleKeyDown = (e: KeyboardEvent) => {
-      const viewport = scrollContainer.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+      const viewport = scrollContainer.querySelector(
+        '[data-radix-scroll-area-viewport]'
+      ) as HTMLElement;
       if (!viewport) return;
 
       const canScrollHorizontally = viewport.scrollWidth > viewport.clientWidth;
-      
+
       if (canScrollHorizontally && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         e.preventDefault();
         const scrollAmount = e.key === 'ArrowLeft' ? -300 : 300; // Large scroll for keyboard
@@ -141,12 +133,12 @@ const useWheelScroll = () => {
 
     // Initial check
     checkScrollable();
-    
+
     // Event listeners
     window.addEventListener('resize', checkScrollable);
     scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
     scrollContainer.addEventListener('keydown', handleKeyDown);
-    
+
     // Make container focusable for keyboard navigation
     scrollContainer.setAttribute('tabindex', '0');
 
@@ -165,49 +157,43 @@ const useWheelScroll = () => {
   return { scrollRef, isScrollable };
 };
 
-const ScrollableSection = React.memo(
-  ({ children }: { children: React.ReactNode }) => {
-    const { scrollRef, isScrollable } = useWheelScroll();
+const ScrollableSection = React.memo(({ children }: { children: React.ReactNode }) => {
+  const { scrollRef, isScrollable } = useWheelScroll();
 
-    return (
-      <div 
-        className={cn(
-          "scrollable-section", 
-          isScrollable && "relative",
-          "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg"
-        )} 
-        ref={scrollRef}
-        role="region"
-        aria-label="Scrollable content section"
-      >
-        <ScrollArea className="w-full whitespace-nowrap horizontal-scroll-container">
-          <div className="flex space-x-3 py-2 px-0.5">{children}</div>
-          <ScrollBar
-            orientation="horizontal"
-            className="h-2 mt-3 opacity-50 cursor-pointer hover:opacity-80 transition-opacity duration-200"
-          />
-        </ScrollArea>
-      </div>
-    );
-  },
-);
+  return (
+    <div
+      className={cn(
+        'scrollable-section',
+        isScrollable && 'relative',
+        'focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg'
+      )}
+      ref={scrollRef}
+      role="region"
+      aria-label="Scrollable content section"
+    >
+      <ScrollArea className="w-full whitespace-nowrap horizontal-scroll-container">
+        <div className="flex space-x-3 py-2 px-0.5">{children}</div>
+        <ScrollBar
+          orientation="horizontal"
+          className="h-2 mt-3 opacity-50 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
+      </ScrollArea>
+    </div>
+  );
+});
 
 const RecentlyPlayedSection = React.memo(({ recentData }: { recentData: any }) => {
   const { scrollRef, isScrollable } = useWheelScroll();
 
   return (
-    <LazySection
-      title="Recently Played"
-      subtitle="Pick up where you left off"
-      icon={Clock}
-    >
+    <LazySection title="Recently Played" subtitle="Pick up where you left off" icon={Clock}>
       {/* Scrollable layout for recently played - 4 items on mobile, 8 items (4x2) on desktop per page */}
-      <div 
+      <div
         className={cn(
-          "scrollable-section", 
-          isScrollable && "relative",
-          "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg"
-        )} 
+          'scrollable-section',
+          isScrollable && 'relative',
+          'focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg'
+        )}
         ref={scrollRef}
         role="region"
         aria-label="Recently played music section"
@@ -216,15 +202,14 @@ const RecentlyPlayedSection = React.memo(({ recentData }: { recentData: any }) =
           <div className="flex space-x-6 md:space-x-8 pb-4">
             {/* Create pages of items - Mobile: 4 items per page, Desktop: 8 items per page */}
             {Array.from({
-              length: Math.ceil(
-                (recentData?.recentlyPlayed?.length ?? 0) / 4,
-              ),
+              length: Math.ceil((recentData?.recentlyPlayed?.length ?? 0) / 4),
             }).map((_, pageIndex) => {
               const mobileStartIndex = pageIndex * 4;
               const mobileEndIndex = mobileStartIndex + 4;
-              const mobilePageItems = (
-                recentData?.recentlyPlayed ?? []
-              ).slice(mobileStartIndex, mobileEndIndex);
+              const mobilePageItems = (recentData?.recentlyPlayed ?? []).slice(
+                mobileStartIndex,
+                mobileEndIndex
+              );
 
               return (
                 <div
@@ -240,21 +225,17 @@ const RecentlyPlayedSection = React.memo(({ recentData }: { recentData: any }) =
 
             {/* Desktop pages - 8 items (4x2) per page */}
             {Array.from({
-              length: Math.ceil(
-                (recentData?.recentlyPlayed?.length ?? 0) / 8,
-              ),
+              length: Math.ceil((recentData?.recentlyPlayed?.length ?? 0) / 8),
             }).map((_, pageIndex) => {
               const desktopStartIndex = pageIndex * 8;
               const desktopEndIndex = desktopStartIndex + 8;
-              const desktopPageItems = (
-                recentData?.recentlyPlayed ?? []
-              ).slice(desktopStartIndex, desktopEndIndex);
+              const desktopPageItems = (recentData?.recentlyPlayed ?? []).slice(
+                desktopStartIndex,
+                desktopEndIndex
+              );
 
               return (
-                <div
-                  key={`desktop-${pageIndex}`}
-                  className="hidden md:block flex-shrink-0 w-full"
-                >
+                <div key={`desktop-${pageIndex}`} className="hidden md:block flex-shrink-0 w-full">
                   <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
                     {desktopPageItems.map((song: any) => (
                       <FullSongCard song={song} key={song.id} />
@@ -309,12 +290,9 @@ const ErrorState = React.memo(
       <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2">
         Something went wrong
       </h3>
-      <p className="text-sm text-destructive text-center font-medium mb-2">
-        {error}
-      </p>
+      <p className="text-sm text-destructive text-center font-medium mb-2">{error}</p>
       <p className="text-xs md:text-sm text-muted-foreground text-center mb-6 md:mb-8 max-w-md">
-        We're having trouble loading your music. Please check your connection
-        and try again.
+        We're having trouble loading your music. Please check your connection and try again.
       </p>
       <Button
         onClick={onRetry}
@@ -326,7 +304,7 @@ const ErrorState = React.memo(
         Try Again
       </Button>
     </Card>
-  ),
+  )
 );
 
 const WelcomeHeader = React.memo(() => (
@@ -335,20 +313,14 @@ const WelcomeHeader = React.memo(() => (
       <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
         Welcome back, Pankaj
       </h1>
-      <p className="text-sm md:text-base text-muted-foreground">
-        Discover your music
-      </p>
+      <p className="text-sm md:text-base text-muted-foreground">Discover your music</p>
     </div>
   </div>
 ));
 
 const HomePage = () => {
   const { data: homePageData, isLoading, error, refetch } = useHomePageMusic();
-  const {
-    data: recentData,
-    isLoading: recentLoading,
-    error: recentError,
-  } = useRecentMusic();
+  const { data: recentData, isLoading: recentLoading, error: recentError } = useRecentMusic();
 
   if (isLoading || recentLoading) {
     return (
@@ -380,16 +352,10 @@ const HomePage = () => {
       {/* <WelcomeHeader /> */}
 
       <div className="space-y-8 md:space-y-12">
-        {hasRecentlyPlayed && (
-          <RecentlyPlayedSection recentData={recentData} />
-        )}
+        {hasRecentlyPlayed && <RecentlyPlayedSection recentData={recentData} />}
 
         {hasMostlyListened && (
-          <LazySection
-            title="Your Favorites"
-            subtitle="Songs you play on repeat"
-            icon={Star}
-          >
+          <LazySection title="Your Favorites" subtitle="Songs you play on repeat" icon={Star}>
             <ScrollableSection>
               {(recentData?.songs ?? []).map((song) => (
                 <SongCard song={song} key={song.id} />
@@ -406,7 +372,7 @@ const HomePage = () => {
           >
             <ScrollableSection>
               {homePageData.trending.data
-                .filter((song) => song.type === "song")
+                .filter((song) => song.type === 'song')
                 .map((song) => (
                   <SongCard song={song} key={song.id} />
                 ))}
@@ -429,11 +395,7 @@ const HomePage = () => {
         )}
 
         {homePageData?.charts?.data?.length > 0 && (
-          <LazySection
-            title="Top Charts"
-            subtitle="The hottest tracks right now"
-            icon={TrendingUp}
-          >
+          <LazySection title="Top Charts" subtitle="The hottest tracks right now" icon={TrendingUp}>
             <ScrollableSection>
               {homePageData.charts.data.map((playlist) => (
                 <PlaylistCard key={playlist.id} playlist={playlist} />
@@ -443,11 +405,7 @@ const HomePage = () => {
         )}
 
         {homePageData.artist_recos?.data?.length > 0 && (
-          <LazySection
-            title="Popular Artists"
-            subtitle="Artists you might like"
-            icon={Users}
-          >
+          <LazySection title="Popular Artists" subtitle="Artists you might like" icon={Users}>
             <ScrollableSection>
               {homePageData.artist_recos.data.map((artist) => (
                 <ArtistCard key={artist.id} artist={artist} />
@@ -457,11 +415,7 @@ const HomePage = () => {
         )}
 
         {homePageData.albums?.data?.length > 0 && (
-          <LazySection
-            title="New Releases"
-            subtitle="Fresh albums to explore"
-            icon={Disc3}
-          >
+          <LazySection title="New Releases" subtitle="Fresh albums to explore" icon={Disc3}>
             <ScrollableSection>
               {homePageData.albums.data.map((album) => (
                 <AlbumCard key={album.id} album={album} />

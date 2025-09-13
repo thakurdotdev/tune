@@ -1,36 +1,27 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
-import { useLogin } from "@/queries/useUser";
-import { API_URL } from "@/constants";
-import { useRouter } from "next/dist/client/components/navigation";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { useLogin } from '@/queries/useUser';
+import { API_URL } from '@/constants';
+import { useRouter } from 'next/dist/client/components/navigation';
+import { toast } from 'sonner';
 
 const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email address"),
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
   password: z
     .string()
-    .min(1, "Password is required")
-    .min(6, "Password must be at least 6 characters"),
+    .min(1, 'Password is required')
+    .min(6, 'Password must be at least 6 characters'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -47,20 +38,20 @@ const Login = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
   });
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       await loginMutation.mutateAsync(data);
-      router.push("/");
+      router.push('/');
     } catch (error: any) {
-      const message = error?.response?.data?.message || "Login failed. Please try again.";
+      const message = error?.response?.data?.message || 'Login failed. Please try again.';
       toast.error(message);
       // Error handling is managed by the mutation
-      console.error("Login failed:", error);
+      console.error('Login failed:', error);
     }
   };
 
@@ -69,9 +60,7 @@ const Login = () => {
       <div className="w-full max-w-md">
         <Card className="border-0 shadow-xl  backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-xl font-semibold text-center">
-              Welcome back
-            </CardTitle>
+            <CardTitle className="text-xl font-semibold text-center">Welcome back</CardTitle>
             <CardDescription className="text-center">
               Sign in to your account to continue
             </CardDescription>
@@ -86,7 +75,7 @@ const Login = () => {
                 window.location.href = `${API_URL}/api/auth/google?client=${window.location.origin}`;
               }}
             >
-              <img src={"./google.svg"} alt="Google" className="w-5 h-5 mr-3" />
+              <img src={'./google.svg'} alt="Google" className="w-5 h-5 mr-3" />
               Continue with Google
             </Button>
 
@@ -112,7 +101,7 @@ const Login = () => {
                     type="email"
                     placeholder="Enter your email"
                     className="pl-10 h-11 "
-                    {...register("email")}
+                    {...register('email')}
                   />
                 </div>
                 {errors.email && (
@@ -131,10 +120,10 @@ const Login = () => {
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <Input
                     id="password"
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     className="pl-10 pr-10 h-11 "
-                    {...register("password")}
+                    {...register('password')}
                   />
                   <Button
                     type="button"
@@ -143,11 +132,7 @@ const Login = () => {
                     className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 " />
-                    ) : (
-                      <Eye className="h-4 w-4 " />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4 " /> : <Eye className="h-4 w-4 " />}
                   </Button>
                 </div>
                 {errors.password && (
@@ -159,15 +144,13 @@ const Login = () => {
               </div>
 
               {loginMutation.isError && (
-                <Alert
-                  variant="destructive"
-                  className="border-red-200 dark:border-red-800"
-                >
+                <Alert variant="destructive" className="border-red-200 dark:border-red-800">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
                     {loginMutation.error instanceof Error
-                      ? (loginMutation.error as any)?.response?.data?.message || loginMutation.error.message
-                      : "Login failed. Please check your credentials and try again."}
+                      ? (loginMutation.error as any)?.response?.data?.message ||
+                        loginMutation.error.message
+                      : 'Login failed. Please check your credentials and try again.'}
                   </AlertDescription>
                 </Alert>
               )}
@@ -184,19 +167,12 @@ const Login = () => {
                     Signing in...
                   </div>
                 ) : (
-                  "Sign In"
+                  'Sign In'
                 )}
               </Button>
             </div>
           </CardContent>
         </Card>
-
-        {/* <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-          Don't have an account?{" "}
-          <button className="font-medium text-slate-900 dark:text-slate-100 hover:underline transition-colors">
-            Sign up
-          </button>
-        </p> */}
       </div>
     </div>
   );

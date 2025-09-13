@@ -1,9 +1,9 @@
-import type { PlaybackState } from "@/types/music";
-import type { Song } from "@/types/song";
-import { getRelatedSongs } from "@/api/music";
-import { create } from "zustand";
-import { subscribeWithSelector } from "zustand/middleware";
-import { persist } from "zustand/middleware";
+import type { PlaybackState } from '@/types/music';
+import type { Song } from '@/types/song';
+import { getRelatedSongs } from '@/api/music';
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 interface PlaybackStore extends PlaybackState {
   setIsPlaying: (isPlaying: boolean) => void;
@@ -13,7 +13,7 @@ interface PlaybackStore extends PlaybackState {
   removeFromQueue: (index: number) => void;
   clearQueue: () => void;
   setShuffle: (shuffle: boolean) => void;
-  setRepeat: (repeat: "none" | "one" | "all") => void;
+  setRepeat: (repeat: 'none' | 'one' | 'all') => void;
 
   getNextSong: () => Song | null;
   getPreviousSong: () => Song | null;
@@ -49,7 +49,7 @@ export const usePlaybackStore = create<PlaybackStore>()(
       queue: [],
       currentIndex: -1,
       shuffle: false,
-      repeat: "none",
+      repeat: 'none',
       _hasHydrated: false,
       _lastRelatedSongId: null,
 
@@ -80,7 +80,7 @@ export const usePlaybackStore = create<PlaybackStore>()(
             queue: updatedQueue,
             currentIndex: newIndex,
           });
-          console.log("New songs added to queue:", newSongs);
+          console.log('New songs added to queue:', newSongs);
 
           // Check if we need to load related songs after adding to the queue
           get().loadRelatedSongsIfNeeded();
@@ -138,14 +138,14 @@ export const usePlaybackStore = create<PlaybackStore>()(
 
         if (queue.length === 0) return null;
 
-        if (repeat === "one") {
+        if (repeat === 'one') {
           return queue[currentIndex] || null;
         }
 
         let nextIndex = currentIndex + 1;
 
         if (nextIndex >= queue.length) {
-          if (repeat === "all") {
+          if (repeat === 'all') {
             nextIndex = 0;
           } else {
             return null;
@@ -164,14 +164,14 @@ export const usePlaybackStore = create<PlaybackStore>()(
 
         if (queue.length === 0) return null;
 
-        if (repeat === "one") {
+        if (repeat === 'one') {
           return queue[currentIndex] || null;
         }
 
         let prevIndex = currentIndex - 1;
 
         if (prevIndex < 0) {
-          if (repeat === "all") {
+          if (repeat === 'all') {
             prevIndex = queue.length - 1;
           } else {
             return null;
@@ -186,12 +186,7 @@ export const usePlaybackStore = create<PlaybackStore>()(
       // Queue management
       moveQueueItem: (fromIndex, toIndex) => {
         const queue = get().queue;
-        if (
-          fromIndex < 0 ||
-          fromIndex >= queue.length ||
-          toIndex < 0 ||
-          toIndex >= queue.length
-        ) {
+        if (fromIndex < 0 || fromIndex >= queue.length || toIndex < 0 || toIndex >= queue.length) {
           return;
         }
 
@@ -227,8 +222,7 @@ export const usePlaybackStore = create<PlaybackStore>()(
 
         const shuffled = shuffleArray(songsToShuffle);
 
-        const newQueue =
-          currentIndex !== -1 ? [queue[currentIndex], ...shuffled] : shuffled;
+        const newQueue = currentIndex !== -1 ? [queue[currentIndex], ...shuffled] : shuffled;
 
         set({
           queue: newQueue,
@@ -247,11 +241,7 @@ export const usePlaybackStore = create<PlaybackStore>()(
 
         const shouldLoadRelated = currentIndex === queue.length - 1;
 
-        if (
-          shouldLoadRelated &&
-          currentSong?.id &&
-          currentSong.id !== _lastRelatedSongId
-        ) {
+        if (shouldLoadRelated && currentSong?.id && currentSong.id !== _lastRelatedSongId) {
           try {
             set({ _lastRelatedSongId: currentSong.id });
             const relatedSongs = await getRelatedSongs(currentSong.id);
@@ -259,13 +249,13 @@ export const usePlaybackStore = create<PlaybackStore>()(
               get().addToQueue(relatedSongs);
             }
           } catch (error) {
-            console.error("Failed to load related songs:", error);
+            console.error('Failed to load related songs:', error);
           }
         }
       },
     })),
     {
-      name: "playback-store",
+      name: 'playback-store',
       partialize: (state) => ({
         queue: state.queue,
         currentIndex: state.currentIndex,
@@ -275,11 +265,10 @@ export const usePlaybackStore = create<PlaybackStore>()(
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
-    },
-  ),
+    }
+  )
 );
 
 export const useQueue = () => usePlaybackStore((state) => state.queue);
-export const useCurrentIndex = () =>
-  usePlaybackStore((state) => state.currentIndex);
+export const useCurrentIndex = () => usePlaybackStore((state) => state.currentIndex);
 export const useIsPlaying = () => usePlaybackStore((state) => state.isPlaying);

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { User } from "@/types/user";
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { User } from '@/types/user';
 
 interface UserState {
   user: User | null;
@@ -17,12 +17,12 @@ export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
       user: null,
-      selectedLanguages: ["hindi"],
+      selectedLanguages: ['hindi'],
 
       setUser: (user: User) => set({ user }),
 
       logout: () => {
-        localStorage.removeItem("token");
+        localStorage.removeItem('token');
         set({ user: null });
       },
 
@@ -31,10 +31,10 @@ export const useUserStore = create<UserState>()(
       },
     }),
     {
-      name: "user-storage",
+      name: 'user-storage',
       storage: createJSONStorage(() => localStorage),
-    },
-  ),
+    }
+  )
 );
 
 export const useUser = () => useUserStore((state) => state.user);
